@@ -1,0 +1,44 @@
+{
+  "safe_grocery_store.png": {
+    "filename": "safe_grocery_store.png",
+    "expectedCategory": "SAFE",
+    "payload": "upi://pay?pa=freshmart@okhdfcbank&pn=Fresh%20Mart%20Supermarket&am=250.00&cu=INR&mc=5411&tn=Groceries",
+    "description": "Legitimate registered merchant with valid MCC, authentic bank handle, and typical retail amount"
+  },
+  "safe_p2p_phone.png": {
+    "filename": "safe_p2p_phone.png",
+    "expectedCategory": "SAFE",
+    "payload": "upi://pay?pa=9876543210@paytm&pn=Aarav%20Sharma&am=100.00&cu=INR",
+    "description": "Legitimate personal peer-to-peer transfer to 10-digit mobile number"
+  },
+  "suspicious_round_bait_amount.png": {
+    "filename": "suspicious_round_bait_amount.png",
+    "expectedCategory": "SUSPICIOUS",
+    "payload": "upi://pay?pa=discount.deal@oksbi&pn=Discount%20Store&am=19999.00&cu=INR",
+    "description": "Promotional lure pricing pattern with pre-filled 19999 round bait amount"
+  },
+  "suspicious_missing_mc_store.png": {
+    "filename": "suspicious_missing_mc_store.png",
+    "expectedCategory": "SUSPICIOUS",
+    "payload": "upi://pay?pa=store201@oksbi&pn=Sharma%20Electronics%20Store%20Pvt%20Ltd&am=18500.00&cu=INR",
+    "description": "Entity claiming formal Pvt Ltd commercial business without 4-digit Merchant Category Code"
+  },
+  "malicious_sbi_refund_scam.png": {
+    "filename": "malicious_sbi_refund_scam.png",
+    "expectedCategory": "HIGH_RISK",
+    "payload": "upi://pay?pa=sbi.refund.helpline@ybl&pn=SBI%20Customer%20Helpline&am=4999.00&cu=INR&tn=Refund%20Approval%20Fee",
+    "description": "Classic impersonation of bank customer care asking for QR scan to receive refund"
+  },
+  "malicious_phishing_ip.png": {
+    "filename": "malicious_phishing_ip.png",
+    "expectedCategory": "HIGH_RISK",
+    "payload": "http://185.220.101.5/sbi/auth/index.php",
+    "description": "Direct IP address unencrypted HTTP phishing credential harvester"
+  },
+  "malicious_tampered_param_pollution.png": {
+    "filename": "malicious_tampered_param_pollution.png",
+    "expectedCategory": "HIGH_RISK",
+    "payload": "upi://pay?pa=innocent@oksbi&pa=attacker@ybl&am=50000.00&cu=INR&tn=Refund%20Verification",
+    "description": "Parameter pollution attack combined with high amount and refund lure"
+  }
+}

@@ -1,0 +1,9 @@
+node_modules
+dist
+build
+.expo
+*.log
+coverage
+docs/sample-fixtures/*.png
+ml/data/synthetic_dataset.json
+packages/core/src/model/model.json
