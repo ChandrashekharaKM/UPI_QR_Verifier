@@ -1,0 +1,670 @@
+{
+  "version": "1.0.0",
+  "nEstimators": 12,
+  "featureNames": [
+    "is_upi_scheme",
+    "is_url_scheme",
+    "is_insecure_http",
+    "is_ip_address_url",
+    "is_shortened_url",
+    "is_suspicious_tld",
+    "is_punycode_url",
+    "payload_length_norm",
+    "has_duplicate_params",
+    "extra_params_count_norm",
+    "vpa_is_known_psp",
+    "vpa_is_phone_number",
+    "vpa_entropy_norm",
+    "vpa_digit_ratio",
+    "vpa_has_impersonation",
+    "vpa_has_excessive_digits",
+    "has_payee_name",
+    "name_vpa_similarity",
+    "has_urgency_in_name",
+    "has_amount",
+    "amount_normalized",
+    "is_high_amount",
+    "is_round_bait_amount",
+    "is_currency_inr",
+    "has_merchant_code",
+    "missing_mc_for_business",
+    "has_refund_note",
+    "rule_risk_score_norm",
+    "community_report_count_norm",
+    "community_recent_report"
+  ],
+  "trees": [
+    {
+      "root": {
+        "isLeaf": false,
+        "featureIndex": 24,
+        "threshold": 0.5,
+        "leftChild": {
+          "isLeaf": false,
+          "featureIndex": 20,
+          "threshold": 0.0845,
+          "leftChild": {
+            "isLeaf": false,
+            "featureIndex": 13,
+            "threshold": 0.7222,
+            "leftChild": {
+              "isLeaf": false,
+              "featureIndex": 18,
+              "threshold": 0.5,
+              "leftChild": {
+                "isLeaf": false,
+                "featureIndex": 17,
+                "threshold": 0.9204,
+                "leftChild": {
+                  "isLeaf": true,
+                  "probability": 1
+                },
+                "rightChild": {
+                  "isLeaf": true,
+                  "probability": 0.048
+                }
+              },
+              "rightChild": {
+                "isLeaf": true,
+                "probability": 1
+              }
+            },
+            "rightChild": {
+              "isLeaf": true,
+              "probability": 0
+            }
+          },
+          "rightChild": {
+            "isLeaf": true,
+            "probability": 1
+          }
+        },
+        "rightChild": {
+          "isLeaf": true,
+          "probability": 0
+        }
+      }
+    },
+    {
+      "root": {
+        "isLeaf": false,
+        "featureIndex": 20,
+        "threshold": 0.05,
+        "leftChild": {
+          "isLeaf": false,
+          "featureIndex": 10,
+          "threshold": 0.5,
+          "leftChild": {
+            "isLeaf": true,
+            "probability": 1
+          },
+          "rightChild": {
+            "isLeaf": false,
+            "featureIndex": 24,
+            "threshold": 0.5,
+            "leftChild": {
+              "isLeaf": true,
+              "probability": 0.391
+            },
+            "rightChild": {
+              "isLeaf": true,
+              "probability": 0
+            }
+          }
+        },
+        "rightChild": {
+          "isLeaf": false,
+          "featureIndex": 27,
+          "threshold": 0.175,
+          "leftChild": {
+            "isLeaf": false,
+            "featureIndex": 12,
+            "threshold": 0.5922,
+            "leftChild": {
+              "isLeaf": false,
+              "featureIndex": 17,
+              "threshold": 0.2144,
+              "leftChild": {
+                "isLeaf": true,
+                "probability": 0
+              },
+              "rightChild": {
+                "isLeaf": true,
+                "probability": 1
+              }
+            },
+            "rightChild": {
+              "isLeaf": true,
+              "probability": 1
+            }
+          },
+          "rightChild": {
+            "isLeaf": true,
+            "probability": 1
+          }
+        }
+      }
+    },
+    {
+      "root": {
+        "isLeaf": false,
+        "featureIndex": 20,
+        "threshold": 0.05,
+        "leftChild": {
+          "isLeaf": false,
+          "featureIndex": 10,
+          "threshold": 0.5,
+          "leftChild": {
+            "isLeaf": true,
+            "probability": 1
+          },
+          "rightChild": {
+            "isLeaf": false,
+            "featureIndex": 12,
+            "threshold": 0.6562,
+            "leftChild": {
+              "isLeaf": false,
+              "featureIndex": 19,
+              "threshold": 0.5,
+              "leftChild": {
+                "isLeaf": true,
+                "probability": 0
+              },
+              "rightChild": {
+                "isLeaf": false,
+                "featureIndex": 20,
+                "threshold": 0.0093,
+                "leftChild": {
+                  "isLeaf": true,
+                  "probability": 0
+                },
+                "rightChild": {
+                  "isLeaf": true,
+                  "probability": 0.496
+                }
+              }
+            },
+            "rightChild": {
+              "isLeaf": false,
+              "featureIndex": 14,
+              "threshold": 0.5,
+              "leftChild": {
+                "isLeaf": true,
+                "probability": 0
+              },
+              "rightChild": {
+                "isLeaf": true,
+                "probability": 1
+              }
+            }
+          }
+        },
+        "rightChild": {
+          "isLeaf": false,
+          "featureIndex": 11,
+          "threshold": 0.5,
+          "leftChild": {
+            "isLeaf": false,
+            "featureIndex": 7,
+            "threshold": 0.144,
+            "leftChild": {
+              "isLeaf": true,
+              "probability": 0
+            },
+            "rightChild": {
+              "isLeaf": true,
+              "probability": 1
+            }
+          },
+          "rightChild": {
+            "isLeaf": true,
+            "probability": 0
+          }
+        }
+      }
+    },
+    {
+      "root": {
+        "isLeaf": false,
+        "featureIndex": 14,
+        "threshold": 0.5,
+        "leftChild": {
+          "isLeaf": false,
+          "featureIndex": 10,
+          "threshold": 0.5,
+          "leftChild": {
+            "isLeaf": true,
+            "probability": 1
+          },
+          "rightChild": {
+            "isLeaf": false,
+            "featureIndex": 27,
+            "threshold": 0.375,
+            "leftChild": {
+              "isLeaf": false,
+              "featureIndex": 17,
+              "threshold": 0.5397,
+              "leftChild": {
+                "isLeaf": false,
+                "featureIndex": 12,
+                "threshold": 0.5922,
+                "leftChild": {
+                  "isLeaf": true,
+                  "probability": 0.063
+                },
+                "rightChild": {
+                  "isLeaf": true,
+                  "probability": 0.857
+                }
+              },
+              "rightChild": {
+                "isLeaf": true,
+                "probability": 0
+              }
+            },
+            "rightChild": {
+              "isLeaf": true,
+              "probability": 1
+            }
+          }
+        },
+        "rightChild": {
+          "isLeaf": true,
+          "probability": 1
+        }
+      }
+    },
+    {
+      "root": {
+        "isLeaf": false,
+        "featureIndex": 17,
+        "threshold": 0.6664,
+        "leftChild": {
+          "isLeaf": false,
+          "featureIndex": 19,
+          "threshold": 0.5,
+          "leftChild": {
+            "isLeaf": false,
+            "featureIndex": 10,
+            "threshold": 0.5,
+            "leftChild": {
+              "isLeaf": true,
+              "probability": 1
+            },
+            "rightChild": {
+              "isLeaf": true,
+              "probability": 0
+            }
+          },
+          "rightChild": {
+            "isLeaf": false,
+            "featureIndex": 7,
+            "threshold": 0.146,
+            "leftChild": {
+              "isLeaf": true,
+              "probability": 0
+            },
+            "rightChild": {
+              "isLeaf": true,
+              "probability": 1
+            }
+          }
+        },
+        "rightChild": {
+          "isLeaf": true,
+          "probability": 0.171
+        }
+      }
+    },
+    {
+      "root": {
+        "isLeaf": false,
+        "featureIndex": 25,
+        "threshold": 0.5,
+        "leftChild": {
+          "isLeaf": false,
+          "featureIndex": 10,
+          "threshold": 0.5,
+          "leftChild": {
+            "isLeaf": true,
+            "probability": 1
+          },
+          "rightChild": {
+            "isLeaf": false,
+            "featureIndex": 11,
+            "threshold": 0.5,
+            "leftChild": {
+              "isLeaf": false,
+              "featureIndex": 14,
+              "threshold": 0.5,
+              "leftChild": {
+                "isLeaf": false,
+                "featureIndex": 13,
+                "threshold": 0.225,
+                "leftChild": {
+                  "isLeaf": true,
+                  "probability": 0.022
+                },
+                "rightChild": {
+                  "isLeaf": true,
+                  "probability": 1
+                }
+              },
+              "rightChild": {
+                "isLeaf": true,
+                "probability": 1
+              }
+            },
+            "rightChild": {
+              "isLeaf": true,
+              "probability": 0
+            }
+          }
+        },
+        "rightChild": {
+          "isLeaf": true,
+          "probability": 1
+        }
+      }
+    },
+    {
+      "root": {
+        "isLeaf": false,
+        "featureIndex": 17,
+        "threshold": 0.8055,
+        "leftChild": {
+          "isLeaf": false,
+          "featureIndex": 20,
+          "threshold": 0.0845,
+          "leftChild": {
+            "isLeaf": false,
+            "featureIndex": 27,
+            "threshold": 0.175,
+            "leftChild": {
+              "isLeaf": false,
+              "featureIndex": 13,
+              "threshold": 0.6875,
+              "leftChild": {
+                "isLeaf": true,
+                "probability": 0.857
+              },
+              "rightChild": {
+                "isLeaf": true,
+                "probability": 0
+              }
+            },
+            "rightChild": {
+              "isLeaf": false,
+              "featureIndex": 17,
+              "threshold": 0.4926,
+              "leftChild": {
+                "isLeaf": true,
+                "probability": 1
+              },
+              "rightChild": {
+                "isLeaf": true,
+                "probability": 0.75
+              }
+            }
+          },
+          "rightChild": {
+            "isLeaf": true,
+            "probability": 1
+          }
+        },
+        "rightChild": {
+          "isLeaf": false,
+          "featureIndex": 18,
+          "threshold": 0.5,
+          "leftChild": {
+            "isLeaf": false,
+            "featureIndex": 19,
+            "threshold": 0.5,
+            "leftChild": {
+              "isLeaf": true,
+              "probability": 0
+            },
+            "rightChild": {
+              "isLeaf": true,
+              "probability": 0.175
+            }
+          },
+          "rightChild": {
+            "isLeaf": true,
+            "probability": 1
+          }
+        }
+      }
+    },
+    {
+      "root": {
+        "isLeaf": false,
+        "featureIndex": 21,
+        "threshold": 0.5,
+        "leftChild": {
+          "isLeaf": false,
+          "featureIndex": 10,
+          "threshold": 0.5,
+          "leftChild": {
+            "isLeaf": true,
+            "probability": 1
+          },
+          "rightChild": {
+            "isLeaf": false,
+            "featureIndex": 18,
+            "threshold": 0.5,
+            "leftChild": {
+              "isLeaf": false,
+              "featureIndex": 24,
+              "threshold": 0.5,
+              "leftChild": {
+                "isLeaf": false,
+                "featureIndex": 8,
+                "threshold": 0.5,
+                "leftChild": {
+                  "isLeaf": true,
+                  "probability": 0.339
+                },
+                "rightChild": {
+                  "isLeaf": true,
+                  "probability": 1
+                }
+              },
+              "rightChild": {
+                "isLeaf": true,
+                "probability": 0
+              }
+            },
+            "rightChild": {
+              "isLeaf": true,
+              "probability": 1
+            }
+          }
+        },
+        "rightChild": {
+          "isLeaf": true,
+          "probability": 1
+        }
+      }
+    },
+    {
+      "root": {
+        "isLeaf": false,
+        "featureIndex": 20,
+        "threshold": 0.0845,
+        "leftChild": {
+          "isLeaf": false,
+          "featureIndex": 12,
+          "threshold": 0.1771,
+          "leftChild": {
+            "isLeaf": true,
+            "probability": 1
+          },
+          "rightChild": {
+            "isLeaf": false,
+            "featureIndex": 27,
+            "threshold": 0.375,
+            "leftChild": {
+              "isLeaf": false,
+              "featureIndex": 17,
+              "threshold": 0.5397,
+              "leftChild": {
+                "isLeaf": false,
+                "featureIndex": 11,
+                "threshold": 0.5,
+                "leftChild": {
+                  "isLeaf": true,
+                  "probability": 1
+                },
+                "rightChild": {
+                  "isLeaf": true,
+                  "probability": 0
+                }
+              },
+              "rightChild": {
+                "isLeaf": true,
+                "probability": 0
+              }
+            },
+            "rightChild": {
+              "isLeaf": true,
+              "probability": 1
+            }
+          }
+        },
+        "rightChild": {
+          "isLeaf": true,
+          "probability": 1
+        }
+      }
+    },
+    {
+      "root": {
+        "isLeaf": false,
+        "featureIndex": 24,
+        "threshold": 0.5,
+        "leftChild": {
+          "isLeaf": false,
+          "featureIndex": 7,
+          "threshold": 0.146,
+          "leftChild": {
+            "isLeaf": false,
+            "featureIndex": 1,
+            "threshold": 0.5,
+            "leftChild": {
+              "isLeaf": true,
+              "probability": 0
+            },
+            "rightChild": {
+              "isLeaf": true,
+              "probability": 1
+            }
+          },
+          "rightChild": {
+            "isLeaf": true,
+            "probability": 0.997
+          }
+        },
+        "rightChild": {
+          "isLeaf": true,
+          "probability": 0
+        }
+      }
+    },
+    {
+      "root": {
+        "isLeaf": false,
+        "featureIndex": 27,
+        "threshold": 0.375,
+        "leftChild": {
+          "isLeaf": false,
+          "featureIndex": 12,
+          "threshold": 0.6085,
+          "leftChild": {
+            "isLeaf": false,
+            "featureIndex": 12,
+            "threshold": 0.5966,
+            "leftChild": {
+              "isLeaf": false,
+              "featureIndex": 13,
+              "threshold": 0.6875,
+              "leftChild": {
+                "isLeaf": false,
+                "featureIndex": 17,
+                "threshold": 0.4911,
+                "leftChild": {
+                  "isLeaf": true,
+                  "probability": 1
+                },
+                "rightChild": {
+                  "isLeaf": true,
+                  "probability": 0
+                }
+              },
+              "rightChild": {
+                "isLeaf": true,
+                "probability": 0
+              }
+            },
+            "rightChild": {
+              "isLeaf": true,
+              "probability": 1
+            }
+          },
+          "rightChild": {
+            "isLeaf": true,
+            "probability": 0
+          }
+        },
+        "rightChild": {
+          "isLeaf": true,
+          "probability": 1
+        }
+      }
+    },
+    {
+      "root": {
+        "isLeaf": false,
+        "featureIndex": 21,
+        "threshold": 0.5,
+        "leftChild": {
+          "isLeaf": false,
+          "featureIndex": 24,
+          "threshold": 0.5,
+          "leftChild": {
+            "isLeaf": false,
+            "featureIndex": 27,
+            "threshold": 0.175,
+            "leftChild": {
+              "isLeaf": false,
+              "featureIndex": 11,
+              "threshold": 0.5,
+              "leftChild": {
+                "isLeaf": true,
+                "probability": 0.193
+              },
+              "rightChild": {
+                "isLeaf": true,
+                "probability": 0
+              }
+            },
+            "rightChild": {
+              "isLeaf": true,
+              "probability": 0.993
+            }
+          },
+          "rightChild": {
+            "isLeaf": true,
+            "probability": 0
+          }
+        },
+        "rightChild": {
+          "isLeaf": true,
+          "probability": 1
+        }
+      }
+    }
+  ],
+  "trainedAt": "2026-10-08T14:03:08.678Z",
+  "description": "Trained Random Forest (12 trees, maxDepth=5)"
+}

@@ -1,0 +1,25 @@
+{
+  "name": "@upi-verifier/core",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Zero-dependency pure TypeScript UPI QR parsing, validation, rule engine, feature extraction, scoring, and ML inference.",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.7"
+  }
+}

@@ -1,0 +1,11 @@
+payload,label,source,patternType,note
+"upi://pay?pa=motherdairy.booth481@okhdfcbank&pn=Mother%20Dairy%20Fruit%20and%20Vegetables&mc=5411&cu=INR",0,real_manual,retail_dairy,Verified physical Mother Dairy milk booth merchant QR
+"upi://pay?pa=irctc.tickets@icici&pn=IRCTC%20Indian%20Railways&mc=4112&cu=INR",0,real_manual,railway_ticketing,Verified official IRCTC booking portal QR
+"upi://pay?pa=9820192831@paytm&pn=Anil%20Verma&cu=INR",0,real_manual,p2p_personal,Verified real peer-to-peer phone transfer
+"upi://pay?pa=starbucks.store102@okaxis&pn=Tata%20Starbucks%20Pvt%20Ltd&mc=5814&cu=INR",0,real_manual,beverage_retail,Verified physical cafe payment QR
+"http://185.220.101.5/sbi/auth/index.php",1,real_phish,raw_ip_banking_phish,Recorded IP-hosted banking credential harvester targeting SBI
+"https://bit.ly/sbi-yono-kyc-verify-urgent",1,real_phish,shortener_banking_lure,Recorded shortened lure distributing malicious APK via WhatsApp
+"https://update-kyc-paytm-wallet.xyz/login",1,real_phish,tld_phish_portal,Recorded disposable .xyz phishing portal imitating Paytm wallet KYC
+"https://xn--hdfcbnk-vxa.com/netbanking",1,real_phish,punycode_homograph,Recorded lookalike homograph domain phishing HDFC netbanking
+"upi://pay?pa=sbi.refund.helpline@ybl&pn=SBI%20Customer%20Helpline&am=2500.00&tn=Refund%20Approval%20Fee",1,real_manual,support_impersonation,Recorded OLX scammer requesting QR scan to approve alleged refund
+"upi://pay?pa=cashback.rewards.desk@oksbi&pn=GooglePay%20Scratch%20Card&am=1999.00&tn=Scan%20to%20Claim%20Cashback",1,real_manual,scratch_card_lure,Recorded scratch card prize lottery scam via Telegram

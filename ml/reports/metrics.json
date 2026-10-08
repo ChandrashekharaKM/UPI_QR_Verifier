@@ -1,0 +1,236 @@
+{
+  "trainedAt": "2026-10-08T14:03:08.678Z",
+  "corpusSize": 1010,
+  "splits": {
+    "train": 706,
+    "validation": 150,
+    "test": 154
+  },
+  "heldOutTestMetrics": {
+    "total": 154,
+    "truePositives": 77,
+    "trueNegatives": 77,
+    "falsePositives": 0,
+    "falseNegatives": 0,
+    "accuracy": 1,
+    "precision": 1,
+    "recall": 1,
+    "f1Score": 1,
+    "falsePositiveRate": 0,
+    "confusionMatrix": [
+      [
+        77,
+        0
+      ],
+      [
+        0,
+        77
+      ]
+    ]
+  },
+  "perSourceMetrics": {
+    "synthetic": {
+      "total": 153,
+      "truePositives": 76,
+      "trueNegatives": 77,
+      "falsePositives": 0,
+      "falseNegatives": 0,
+      "accuracy": 1,
+      "precision": 1,
+      "recall": 1,
+      "f1Score": 1,
+      "falsePositiveRate": 0,
+      "confusionMatrix": [
+        [
+          77,
+          0
+        ],
+        [
+          0,
+          76
+        ]
+      ]
+    },
+    "real_phish": {
+      "total": 1,
+      "truePositives": 1,
+      "trueNegatives": 0,
+      "falsePositives": 0,
+      "falseNegatives": 0,
+      "accuracy": 1,
+      "precision": 1,
+      "recall": 1,
+      "f1Score": 1,
+      "falsePositiveRate": 0,
+      "confusionMatrix": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ]
+      ]
+    }
+  },
+  "validationMetrics": {
+    "total": 150,
+    "truePositives": 75,
+    "trueNegatives": 75,
+    "falsePositives": 0,
+    "falseNegatives": 0,
+    "accuracy": 1,
+    "precision": 1,
+    "recall": 1,
+    "f1Score": 1,
+    "falsePositiveRate": 0,
+    "confusionMatrix": [
+      [
+        75,
+        0
+      ],
+      [
+        0,
+        75
+      ]
+    ]
+  },
+  "ablationComparison": {
+    "rulesOnly": {
+      "total": 154,
+      "truePositives": 75,
+      "trueNegatives": 57,
+      "falsePositives": 20,
+      "falseNegatives": 2,
+      "accuracy": 0.8571,
+      "precision": 0.7895,
+      "recall": 0.974,
+      "f1Score": 0.8721,
+      "falsePositiveRate": 0.2597,
+      "confusionMatrix": [
+        [
+          57,
+          20
+        ],
+        [
+          2,
+          75
+        ]
+      ]
+    },
+    "mlOnly": {
+      "total": 154,
+      "truePositives": 77,
+      "trueNegatives": 77,
+      "falsePositives": 0,
+      "falseNegatives": 0,
+      "accuracy": 1,
+      "precision": 1,
+      "recall": 1,
+      "f1Score": 1,
+      "falsePositiveRate": 0,
+      "confusionMatrix": [
+        [
+          77,
+          0
+        ],
+        [
+          0,
+          77
+        ]
+      ]
+    },
+    "combined": {
+      "total": 154,
+      "truePositives": 75,
+      "trueNegatives": 77,
+      "falsePositives": 0,
+      "falseNegatives": 2,
+      "accuracy": 0.987,
+      "precision": 1,
+      "recall": 0.974,
+      "f1Score": 0.9868,
+      "falsePositiveRate": 0,
+      "confusionMatrix": [
+        [
+          77,
+          0
+        ],
+        [
+          2,
+          75
+        ]
+      ]
+    }
+  },
+  "topFeatures": [
+    {
+      "featureIndex": 17,
+      "featureName": "name_vpa_similarity",
+      "importanceScore": 0.129,
+      "splitCount": 8
+    },
+    {
+      "featureIndex": 10,
+      "featureName": "vpa_is_known_psp",
+      "importanceScore": 0.0968,
+      "splitCount": 6
+    },
+    {
+      "featureIndex": 12,
+      "featureName": "vpa_entropy_norm",
+      "importanceScore": 0.0968,
+      "splitCount": 6
+    },
+    {
+      "featureIndex": 20,
+      "featureName": "amount_normalized",
+      "importanceScore": 0.0968,
+      "splitCount": 6
+    },
+    {
+      "featureIndex": 27,
+      "featureName": "rule_risk_score_norm",
+      "importanceScore": 0.0968,
+      "splitCount": 6
+    },
+    {
+      "featureIndex": 24,
+      "featureName": "has_merchant_code",
+      "importanceScore": 0.0806,
+      "splitCount": 5
+    },
+    {
+      "featureIndex": 11,
+      "featureName": "vpa_is_phone_number",
+      "importanceScore": 0.0645,
+      "splitCount": 4
+    },
+    {
+      "featureIndex": 13,
+      "featureName": "vpa_digit_ratio",
+      "importanceScore": 0.0645,
+      "splitCount": 4
+    },
+    {
+      "featureIndex": 7,
+      "featureName": "payload_length_norm",
+      "importanceScore": 0.0484,
+      "splitCount": 3
+    },
+    {
+      "featureIndex": 14,
+      "featureName": "vpa_has_impersonation",
+      "importanceScore": 0.0484,
+      "splitCount": 3
+    }
+  ],
+  "hyperparameters": {
+    "nEstimators": 12,
+    "maxDepth": 5,
+    "minSamplesSplit": 5,
+    "minSamplesLeaf": 2,
+    "seed": 42
+  }
+}

@@ -1,0 +1,9 @@
+node_modules/
+dist/
+build/
+.expo/
+*.log
+.DS_Store
+*.tsbuildinfo
+coverage/
+.turbo/

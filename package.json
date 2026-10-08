@@ -1,0 +1,16 @@
+{
+  "name": "upi-qr-verifier-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Payment QR code Alert System - UPI QR Verifier",
+  "scripts": {
+    "test": "pnpm --filter @upi-verifier/core test",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "eslint .",
+    "build:core": "pnpm --filter @upi-verifier/core build"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.1",
+    "typescript": "^5.7.3"
+  }
+}
