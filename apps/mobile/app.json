@@ -1,0 +1,55 @@
+{
+  "expo": {
+    "name": "UPI QR Verifier",
+    "slug": "upi-qr-verifier",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "upiverifier",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#0F172A"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.upiverifier.alert",
+      "infoPlist": {
+        "NSCameraUsageDescription": "UPI QR Verifier requires camera access to scan QR payment codes before paying.",
+        "NSPhotoLibraryUsageDescription": "UPI QR Verifier requires photo library access to inspect payment QR codes saved in gallery."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0F172A"
+      },
+      "package": "com.upiverifier.alert",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.VIBRATE"
+      ]
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow UPI QR Verifier to access your camera to scan payment QR codes."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow UPI QR Verifier to access your photos to analyze QR images."
+        }
+      ]
+    ]
+  }
+}
