@@ -127,15 +127,15 @@ describe('Scoring Logic, Threshold Boundaries, and Confidence Notes', () => {
     });
 
     expect(result.category).toBe('SAFE');
-    expect(result.confidenceNote).toContain('No major risk indicators found; verify the receiver before paying.');
+    expect(result.confidenceNote).toBe('No major risk indicators found; recipient identity NOT independently verified');
     // Persistent disclaimer must always be present
     expect(result.disclaimer).toBeTruthy();
     expect(result.disclaimer.length).toBeGreaterThan(20);
   });
 
-  it('58. adds an explicit "Unverified" note when evidence is insufficient (no merchant code, no reports)', () => {
+  it('58. updates SAFE wording when registered-name check ran vs when it did not', () => {
     const parsed = parsePayload('upi://pay?pa=randomperson@oksbi');
-    const result = calculateVerificationScore({
+    const resultWithout = calculateVerificationScore({
       ctx: { parsed },
       triggeredRules: [],
       ruleRiskScore: 0,
@@ -143,9 +143,28 @@ describe('Scoring Logic, Threshold Boundaries, and Confidence Notes', () => {
       model: dummyModel
     });
 
-    expect(result.category).toBe('SAFE');
-    expect(result.confidenceNote).toContain('Unverified recipient: No previous history or merchant records found.');
-    expect(result.confidenceNote).toContain('verify the receiver before paying.');
+    expect(resultWithout.category).toBe('SAFE');
+    expect(resultWithout.confidenceNote).toBe(
+      'No major risk indicators found; recipient identity NOT independently verified'
+    );
+
+    const resultWith = calculateVerificationScore({
+      ctx: {
+        parsed,
+        pspLookup: {
+          isValid: true,
+          registeredName: 'Rahul Sharma',
+          provider: 'razorpay'
+        }
+      },
+      triggeredRules: [],
+      ruleRiskScore: 0,
+      features: dummyFeatures,
+      model: dummyModel
+    });
+
+    expect(resultWith.category).toBe('SAFE');
+    expect(resultWith.confidenceNote).toContain('bank-registered recipient identity verified as "Rahul Sharma"');
   });
 
   it('59. ranks reasons strictly in descending order of impact', () => {
@@ -168,5 +187,23 @@ describe('Scoring Logic, Threshold Boundaries, and Confidence Notes', () => {
     expect(result.reasons[1]?.impact).toBe(50);
     expect(result.reasons[2]?.ruleId).toBe('LOW_IMPACT');
     expect(result.reasons[2]?.impact).toBe(20);
+  });
+
+  it('60. critical rule overrides ML model to guarantee HIGH_RISK category even when ML predicts 0', () => {
+    const parsed = parsePayload('upi://pay?pa=malicious.support@ybl');
+    // Critical rule with weight 85. Without override: 85 * 0.65 = 55.25 -> would be SUSPICIOUS (<= 70)
+    const criticalRule = createMockRule('RULE_VPA_IMPERSONATION', 85, 'critical');
+
+    const result = calculateVerificationScore({
+      ctx: { parsed },
+      triggeredRules: [criticalRule],
+      ruleRiskScore: 85,
+      features: dummyFeatures,
+      model: dummyModel // ML predicts 0.0
+    });
+
+    expect(result.scoreBreakdown.isCriticalRuleOverride).toBe(true);
+    expect(result.score).toBeGreaterThanOrEqual(75);
+    expect(result.category).toBe('HIGH_RISK');
   });
 });

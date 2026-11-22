@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { validateVpa, isKnownPspHandle, getKnownPspHandles } from '../src/validators/psp-validator.js';
 import { validateAmountAndCurrency } from '../src/validators/amount-validator.js';
 import { validateMerchantAndUrgency } from '../src/validators/merchant-validator.js';
-import { calculateShannonEntropy, analyzeStringComposition } from '../src/validators/entropy.js';
+import { analyzeStringComposition } from '../src/validators/entropy.js';
 import { levenshteinDistance, jaroWinklerSimilarity } from '../src/validators/string-distance.js';
 
 describe('Validators and Heuristic Analyzers', () => {

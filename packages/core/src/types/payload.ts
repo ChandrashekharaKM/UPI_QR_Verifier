@@ -1,6 +1,9 @@
-export type PayloadKind = 'upi' | 'url' | 'other';
+export type PayloadKind = 'upi' | 'emv' | 'url' | 'other';
 
 export interface UpiFields {
+  readonly source?: 'upi' | 'emv';
+  readonly originalScheme?: string;      // e.g. 'upi://pay', 'upi://collect', 'phonepe://pay', 'tez://upi/pay', etc.
+  readonly action?: 'pay' | 'collect' | 'mandate' | string;
   readonly pa: string;                   // Payee VPA / UPI ID (e.g. merchant@okhdfcbank)
   readonly pn?: string;                  // Payee Name
   readonly am?: string;                  // Amount string (e.g. 500.00)
@@ -15,8 +18,30 @@ export interface UpiFields {
   readonly mid?: string;                 // Merchant ID
   readonly msid?: string;                // Terminal / Store ID
   readonly mtid?: string;                // Terminal / Device ID
+  readonly tid?: string;                 // Terminal ID / Transaction ID
+  readonly purpose?: string;             // Purpose Code (e.g. 00, 11)
+  readonly ver?: string;                 // UPI version specification
   readonly extraParams: Readonly<Record<string, string>>; // Unknown / non-standard params
   readonly duplicateKeys: readonly string[];              // Any keys that appeared multiple times
+}
+
+export interface EmvFields {
+  readonly rawPayload: string;
+  readonly tlvMap: Readonly<Record<string, string>>;
+  readonly isValidCrc: boolean;
+  readonly declaredCrc?: string;
+  readonly calculatedCrc?: string;
+  readonly upi: UpiFields;
+  readonly merchantName?: string;
+  readonly merchantCity?: string;
+  readonly postalCode?: string;
+  readonly mcc?: string;
+  readonly currency?: string;
+  readonly amount?: string;
+  readonly tipIndicator?: string;
+  readonly tipValueFixed?: string;
+  readonly tipValuePercentage?: string;
+  readonly pointOfInitiation?: 'static' | 'dynamic';
 }
 
 export interface UrlFields {
@@ -40,6 +65,7 @@ export interface OtherFields {
 
 export type ParsedFields =
   | { readonly kind: 'upi'; readonly upi: UpiFields }
+  | { readonly kind: 'emv'; readonly emv: EmvFields; readonly upi: UpiFields }
   | { readonly kind: 'url'; readonly url: UrlFields }
   | { readonly kind: 'other'; readonly other: OtherFields };
 
@@ -50,4 +76,5 @@ export interface ParsedPayload {
   readonly parseWarnings: readonly string[];
   readonly hasDuplicateParams: boolean;
   readonly payloadLength: number;
+  readonly originalScheme?: string;      // e.g. 'upi://collect', 'phonepe://pay', 'tez://upi/pay', etc.
 }

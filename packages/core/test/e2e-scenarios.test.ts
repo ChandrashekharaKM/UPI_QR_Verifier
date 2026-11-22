@@ -8,8 +8,9 @@ describe('End-to-End Scenarios and Real-World Threat Detection', () => {
 
     expect(result.category).toBe('SAFE');
     expect(result.score).toBeLessThanOrEqual(30);
-    expect(result.confidenceNote).toContain('No major risk indicators found; verify the receiver before paying.');
+    expect(result.confidenceNote).toBe('No major risk indicators found; recipient identity NOT independently verified');
     expect(result.reasons.length).toBe(0);
+    expect(result.isMerchantQr).toBe(true);
     expect(result.disclaimer).toBeTruthy();
   });
 
@@ -81,5 +82,16 @@ describe('End-to-End Scenarios and Real-World Threat Detection', () => {
     expect(result.isOfflineEvaluation).toBe(true);
     expect(result.score).toBeDefined();
     expect(result.features.values.length).toBe(30);
+  });
+
+  it('71. accurately detects commercial merchant QR vs peer-to-peer personal QR for physical tampering warnings', () => {
+    const merchantPayload = 'upi://pay?pa=cornerstore@okhdfcbank&pn=Corner%20Supermarket&mc=5411';
+    const p2pPayload = 'upi://pay?pa=rohit99@okhdfcbank&pn=Rohit%20Sharma';
+
+    const merchantRes = verifyQrPayload(merchantPayload);
+    const p2pRes = verifyQrPayload(p2pPayload);
+
+    expect(merchantRes.isMerchantQr).toBe(true);
+    expect(p2pRes.isMerchantQr).toBe(false);
   });
 });

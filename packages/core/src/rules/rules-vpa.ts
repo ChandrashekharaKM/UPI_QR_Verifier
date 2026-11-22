@@ -7,7 +7,10 @@ import { validateVpa } from '../validators/psp-validator.js';
  * Unrecognized handles might indicate spoofed or unverified payment destinations.
  */
 export function ruleUnknownPsp(ctx: RuleContext): RuleResult {
-  if (ctx.parsed.kind !== 'upi' || ctx.parsed.fields.kind !== 'upi') {
+  if (
+    (ctx.parsed.kind !== 'upi' && ctx.parsed.kind !== 'emv') ||
+    (ctx.parsed.fields.kind !== 'upi' && ctx.parsed.fields.kind !== 'emv')
+  ) {
     return {
       id: 'RULE_UNKNOWN_PSP',
       triggered: false,
@@ -21,21 +24,23 @@ export function ruleUnknownPsp(ctx: RuleContext): RuleResult {
   const { pa } = ctx.parsed.fields.upi;
   const vpaCheck = validateVpa(pa);
 
-  const isUnknown = vpaCheck.isValidSyntax && !vpaCheck.isKnownPsp;
+  const isUnknown = !vpaCheck.isValidSyntax || !vpaCheck.isKnownPsp;
 
   return {
     id: 'RULE_UNKNOWN_PSP',
     triggered: isUnknown,
-    severity: 'medium',
-    weight: 45,
-    title: 'Unknown Payment Service Provider',
+    severity: !vpaCheck.isValidSyntax ? 'high' : 'medium',
+    weight: !vpaCheck.isValidSyntax ? 60 : 45,
+    title: !vpaCheck.isValidSyntax ? 'Invalid or Malformed UPI Address' : 'Unknown Payment Service Provider',
     message: isUnknown
-      ? `The UPI handle "@${vpaCheck.pspHandle}" is not on the recognized NPCI banking PSP allowlist. Exercise caution before proceeding.`
+      ? (!vpaCheck.isValidSyntax
+          ? `The UPI address "${pa}" violates standard syntax specifications. Malformed addresses risk misdirected payments or client exploitation.`
+          : `The UPI handle "@${vpaCheck.pspHandle}" is not on the recognized NPCI banking PSP allowlist. Exercise caution before proceeding.`)
       : 'VPA uses a recognized banking PSP handle.',
     evidence: isUnknown
       ? [
           { key: 'vpa', value: pa },
-          { key: 'pspHandle', value: vpaCheck.pspHandle }
+          { key: 'pspHandle', value: vpaCheck.pspHandle || 'invalid' }
         ]
       : undefined
   };
@@ -47,7 +52,10 @@ export function ruleUnknownPsp(ctx: RuleContext): RuleResult {
  * to evade detection and bank blocklists.
  */
 export function ruleVpaHighEntropy(ctx: RuleContext): RuleResult {
-  if (ctx.parsed.kind !== 'upi' || ctx.parsed.fields.kind !== 'upi') {
+  if (
+    (ctx.parsed.kind !== 'upi' && ctx.parsed.kind !== 'emv') ||
+    (ctx.parsed.fields.kind !== 'upi' && ctx.parsed.fields.kind !== 'emv')
+  ) {
     return {
       id: 'RULE_VPA_HIGH_ENTROPY',
       triggered: false,
@@ -81,7 +89,10 @@ export function ruleVpaHighEntropy(ctx: RuleContext): RuleResult {
  * Why: Unless it matches a standard 10-digit Indian phone number, long digit strings often disguise disposable burner routing accounts.
  */
 export function ruleVpaExcessiveDigits(ctx: RuleContext): RuleResult {
-  if (ctx.parsed.kind !== 'upi' || ctx.parsed.fields.kind !== 'upi') {
+  if (
+    (ctx.parsed.kind !== 'upi' && ctx.parsed.kind !== 'emv') ||
+    (ctx.parsed.fields.kind !== 'upi' && ctx.parsed.fields.kind !== 'emv')
+  ) {
     return {
       id: 'RULE_VPA_EXCESSIVE_DIGITS',
       triggered: false,
@@ -115,7 +126,10 @@ export function ruleVpaExcessiveDigits(ctx: RuleContext): RuleResult {
  * Why: Scammers name their VPAs "sbi.refund", "paytm.support", "customercare.helpdesk" to deceive victims into believing they are transacting with official customer support.
  */
 export function ruleVpaImpersonation(ctx: RuleContext): RuleResult {
-  if (ctx.parsed.kind !== 'upi' || ctx.parsed.fields.kind !== 'upi') {
+  if (
+    (ctx.parsed.kind !== 'upi' && ctx.parsed.kind !== 'emv') ||
+    (ctx.parsed.fields.kind !== 'upi' && ctx.parsed.fields.kind !== 'emv')
+  ) {
     return {
       id: 'RULE_VPA_IMPERSONATION',
       triggered: false,
@@ -126,9 +140,22 @@ export function ruleVpaImpersonation(ctx: RuleContext): RuleResult {
     };
   }
 
-  const { pa } = ctx.parsed.fields.upi;
+  const { pa, mc } = ctx.parsed.fields.upi;
   const vpaCheck = validateVpa(pa);
-  const isTriggered = vpaCheck.impersonationKeywords.length > 0;
+
+  // Industry-specific legitimate keywords when matching MCC is present
+  const UTILITY_KEYWORDS = new Set(['bescom', 'mahavitaran', 'uppcl', 'tneb', 'electricity', 'discom']);
+  const TOLL_KEYWORDS = new Set(['fastag']);
+  const COURIER_KEYWORDS = new Set(['indiapost', 'speedpost', 'postoffice', 'fedex', 'dtdc', 'bluedart']);
+
+  const relevantKeywords = vpaCheck.impersonationKeywords.filter((kw) => {
+    if (mc === '4900' && UTILITY_KEYWORDS.has(kw)) return false;
+    if ((mc === '4784' || mc === '7523') && TOLL_KEYWORDS.has(kw)) return false;
+    if (mc === '4215' && COURIER_KEYWORDS.has(kw)) return false;
+    return true;
+  });
+
+  const isTriggered = relevantKeywords.length > 0;
 
   return {
     id: 'RULE_VPA_IMPERSONATION',
@@ -137,12 +164,12 @@ export function ruleVpaImpersonation(ctx: RuleContext): RuleResult {
     weight: 85,
     title: 'Brand / Bank / Support Impersonation',
     message: isTriggered
-      ? `The UPI address "${pa}" contains deceptive keywords (${vpaCheck.impersonationKeywords.join(', ')}) impersonating official customer care, banking support, or government bodies.`
+      ? `The UPI address "${pa}" contains deceptive keywords (${relevantKeywords.join(', ')}) impersonating official customer care, banking support, or government bodies.`
       : 'No bank or authority impersonation patterns detected in the UPI ID.',
     evidence: isTriggered
       ? [
           { key: 'vpa', value: pa },
-          { key: 'keywords', value: vpaCheck.impersonationKeywords.join(', ') }
+          { key: 'keywords', value: relevantKeywords.join(', ') }
         ]
       : undefined
   };

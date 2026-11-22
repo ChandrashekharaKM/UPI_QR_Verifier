@@ -16,9 +16,11 @@
     "build": "tsc -b",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "check:freshness": "tsx scripts/check-psp-freshness.ts"
   },
   "devDependencies": {
+    "fast-check": "^4.10.3",
     "typescript": "^5.7.3",
     "vitest": "^3.0.7"
   }
