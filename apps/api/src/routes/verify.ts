@@ -10,7 +10,7 @@ import { VerifyRequestSchema, type VerifyRequestBody } from '../schemas/index.js
 import type { DatabaseClient } from '../db/client.js';
 import type { PspLookupService } from '../services/psp-lookup.js';
 import type { ThreatIntelService } from '../services/threat-intel.js';
-import { hashString } from '../db/schema.js';
+import { hashString, type VpaReputationSummary } from '../db/schema.js';
 
 export interface VerifyRouteOptions {
   readonly dbClient: DatabaseClient;

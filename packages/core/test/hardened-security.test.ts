@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { verifyQrPayload } from '../src/verifier.js';
+import { parsePayload } from '../src/parser/payload-parser.js';
 import { validateVpa } from '../src/validators/psp-validator.js';
 import { ruleDuplicateParameters, ruleUnknownParameters } from '../src/rules/rules-payload.js';
 import { ruleIpAddressUrl, ruleHttpNotHttps, ruleShortenedUrl } from '../src/rules/rules-protocol.js';
