@@ -28,6 +28,27 @@ describe('Fastify Backend API Integration Tests', () => {
     expect(typeof body.uptime).toBe('number');
   });
 
+  it('1b. GET / redirects browser requests to /documentation and serves JSON metadata to API clients', async () => {
+    const htmlRes = await app.inject({
+      method: 'GET',
+      url: '/',
+      headers: { accept: 'text/html,application/xhtml+xml' }
+    });
+    expect(htmlRes.statusCode).toBe(302);
+    expect(htmlRes.headers.location).toBe('/documentation');
+
+    const jsonRes = await app.inject({
+      method: 'GET',
+      url: '/',
+      headers: { accept: 'application/json' }
+    });
+    expect(jsonRes.statusCode).toBe(200);
+    const jsonBody = JSON.parse(jsonRes.body);
+    expect(jsonBody.status).toBe('ok');
+    expect(jsonBody.documentation).toBe('/documentation');
+    expect(jsonBody.health).toBe('/v1/health');
+  });
+
   it('2. GET /v1/vpa/:vpa/reputation returns zero count for unflagged VPA', async () => {
     const res = await app.inject({
       method: 'GET',

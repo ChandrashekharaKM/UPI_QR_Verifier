@@ -143,6 +143,23 @@ export async function buildApp(opts: AppOptions = {}): Promise<FastifyInstance> 
     return fastify.swagger();
   });
 
+  // Root welcome / index route: redirect browser users to /documentation
+  fastify.get('/', { schema: { hide: true } }, async (request, reply) => {
+    const acceptHeader = request.headers['accept'] ?? '';
+    if (acceptHeader.includes('text/html')) {
+      return reply.redirect('/documentation');
+    }
+    return {
+      status: 'ok',
+      service: 'UPI QR Verifier - Payment QR code Alert System API',
+      version: '1.0.0',
+      documentation: '/documentation',
+      health: '/v1/health',
+      openapi: '/openapi.json',
+      webApp: 'http://localhost:8081'
+    };
+  });
+
   // Register API v1 routes
   await fastify.register(
     async (v1) => {
