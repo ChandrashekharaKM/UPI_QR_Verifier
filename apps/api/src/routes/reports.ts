@@ -29,13 +29,28 @@ export const reportsRoutes: FastifyPluginAsync<ReportsRouteOptions> = async (
           type: 'object',
           required: ['vpa', 'reason'],
           properties: {
-            vpa: { type: 'string', description: 'UPI VPA (e.g. fraudulent@oksbi)' },
+            vpa: {
+              type: 'string',
+              minLength: 3,
+              maxLength: 100,
+              pattern: '^.+@.+$',
+              description: 'UPI VPA (e.g. fraudulent@oksbi)'
+            },
             reason: {
               type: 'string',
-              enum: ['phishing', 'fake_support', 'impersonation', 'unauthorized_charge', 'other']
+              enum: ['phishing', 'fake_support', 'impersonation', 'unauthorized_charge', 'other'],
+              description: 'Scam category indicator'
             },
-            note: { type: 'string', description: 'Optional context note' },
-            deviceId: { type: 'string', description: 'Device client identifier' }
+            note: {
+              type: 'string',
+              maxLength: 500,
+              description: 'Optional context note'
+            },
+            deviceId: {
+              type: 'string',
+              maxLength: 128,
+              description: 'Device client identifier'
+            }
           }
         },
         response: {

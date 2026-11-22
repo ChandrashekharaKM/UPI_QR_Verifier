@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import type { CommunityPeriodBreakdown } from '@upi-verifier/core';
 
 export interface ReportRecord {
   readonly id?: number;
@@ -22,9 +23,13 @@ export interface ScanRecord {
 export interface VpaReputationSummary {
   readonly vpa: string;
   readonly reportCount: number;
+  readonly uniqueReporters?: number;
+  readonly decayedScore?: number;
+  readonly recentReportCount?: number;
   readonly lastReported?: string;
   readonly lastReportedDaysAgo?: number;
   readonly topCategories: readonly string[];
+  readonly breakdownByPeriod?: CommunityPeriodBreakdown;
 }
 
 export function hashString(input: string): string {
