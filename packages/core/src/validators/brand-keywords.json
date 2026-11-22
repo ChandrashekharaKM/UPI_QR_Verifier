@@ -1,0 +1,533 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "version": "1.0.0",
+  "updatedAt": "2026-11-22T00:00:00.000Z",
+  "description": "Multi-category brand keywords, Indian language transliterations, high-risk lure intents, and legitimate intermediary exemptions for precision brand impersonation detection.",
+  "categories": {
+    "banks": [
+      {
+        "id": "sbi",
+        "displayName": "State Bank of India",
+        "tokens": ["sbi", "statebank", "statebankofindia"],
+        "transliterations": {
+          "devanagari": ["एसबीआई", "स्टेट बैंक", "स्टेट बैंक ऑफ इंडिया"],
+          "hinglish": ["state bank", "sbi bank"],
+          "tamil": ["எஸ்பிஐ", "ஸ்டேட் பாங்க்"],
+          "telugu": ["ఎస్బీఐ", "స్టేట్ బ్యాంక్"],
+          "bengali": ["এসবিআই", "স্টেট ব্যাঙ্ক"],
+          "kannada": ["ಎಸ್ಬಿಐ", "ಸ್ಟೇಟ್ ಬ್ಯಾಂಕ್"]
+        }
+      },
+      {
+        "id": "hdfc",
+        "displayName": "HDFC Bank",
+        "tokens": ["hdfc", "hdfcbank"],
+        "transliterations": {
+          "devanagari": ["एचडीएफसी", "एच डी एफ सी", "एचडीएफसी बैंक"],
+          "hinglish": ["hdfc bank"],
+          "tamil": ["ஹெச்டிஎஃப்சி"],
+          "telugu": ["హెచ్‌డీఎఫ్‌సీ"],
+          "bengali": ["এইচডিএফসি"],
+          "kannada": ["ಹೆಚ್‌ಡಿಎಫ್‌ಸಿ"]
+        }
+      },
+      {
+        "id": "icici",
+        "displayName": "ICICI Bank",
+        "tokens": ["icici", "icicibank"],
+        "transliterations": {
+          "devanagari": ["आईसीआईसीआई", "आई सी आई सी आई", "आईसीआईसीआई बैंक"],
+          "hinglish": ["icici bank"],
+          "tamil": ["ஐசிஐசிஐ"],
+          "telugu": ["ఐసీఐసీఐ"],
+          "bengali": ["আইসিআইসিআই"],
+          "kannada": ["ಐಸಿಐಸಿಐ"]
+        }
+      },
+      {
+        "id": "axis",
+        "displayName": "Axis Bank",
+        "tokens": ["axis", "axisbank"],
+        "transliterations": {
+          "devanagari": ["एक्सिस", "एक्सिस बैंक"],
+          "hinglish": ["axis bank"],
+          "tamil": ["ஆக்சிஸ்"],
+          "telugu": ["యాక్సిస్"],
+          "bengali": ["অ্যাক্সিস"],
+          "kannada": ["ಆಕ್ಸಿಸ್"]
+        }
+      },
+      {
+        "id": "kotak",
+        "displayName": "Kotak Mahindra Bank",
+        "tokens": ["kotak", "kotakbank", "kotak811"],
+        "transliterations": {
+          "devanagari": ["कोटक", "कोटक महिंद्रा", "कोटक बैंक"],
+          "hinglish": ["kotak bank"],
+          "tamil": ["கோடக்"],
+          "telugu": ["కోటక్"],
+          "bengali": ["কোটাক"],
+          "kannada": ["ಕೋಟಕ್"]
+        }
+      },
+      {
+        "id": "pnb",
+        "displayName": "Punjab National Bank",
+        "tokens": ["pnb", "punjabnationalbank"],
+        "transliterations": {
+          "devanagari": ["पीएनबी", "पंजाब नेशनल बैंक"],
+          "hinglish": ["punjab national bank", "pnb bank"],
+          "bengali": ["পাঞ্জাব ন্যাশনাল ব্যাঙ্ক"]
+        }
+      },
+      {
+        "id": "bob",
+        "displayName": "Bank of Baroda",
+        "tokens": ["bob", "bankofbaroda"],
+        "transliterations": {
+          "devanagari": ["बीओबी", "बैंक ऑफ बड़ौदा"],
+          "hinglish": ["bank of baroda", "bob bank"]
+        }
+      },
+      {
+        "id": "canara",
+        "displayName": "Canara Bank",
+        "tokens": ["canara", "canarabank"],
+        "transliterations": {
+          "devanagari": ["केनरा", "केनरा बैंक"],
+          "hinglish": ["canara bank"],
+          "kannada": ["ಕೆನರಾ ಬ್ಯಾಂಕ್"]
+        }
+      },
+      {
+        "id": "unionbank",
+        "displayName": "Union Bank of India",
+        "tokens": ["unionbank", "ubi"],
+        "transliterations": {
+          "devanagari": ["यूनियन बैंक"],
+          "hinglish": ["union bank"]
+        }
+      },
+      {
+        "id": "indusind",
+        "displayName": "IndusInd Bank",
+        "tokens": ["indusind", "indusindbank"],
+        "transliterations": {
+          "devanagari": ["इंडसइंड", "इंडसइंड बैंक"],
+          "hinglish": ["indusind bank"]
+        }
+      },
+      {
+        "id": "yesbank",
+        "displayName": "Yes Bank",
+        "tokens": ["yesbank"],
+        "transliterations": {
+          "devanagari": ["यस बैंक"],
+          "hinglish": ["yes bank"]
+        }
+      },
+      {
+        "id": "idfc",
+        "displayName": "IDFC FIRST Bank",
+        "tokens": ["idfc", "idfcfirstbank", "idfcbank"],
+        "transliterations": {
+          "devanagari": ["आईडीएफसी"],
+          "hinglish": ["idfc first bank"]
+        }
+      }
+    ],
+    "wallets": [
+      {
+        "id": "paytm",
+        "displayName": "Paytm",
+        "tokens": ["paytm", "paytmpaymentsbank"],
+        "transliterations": {
+          "devanagari": ["पेटीएम", "पेटीऍम", "पेटीएम पेमेंट्स बैंक"],
+          "hinglish": ["paytm"],
+          "tamil": ["பேடிஎம்"],
+          "telugu": ["పేటీఎం"],
+          "bengali": ["পেটিএম"],
+          "kannada": ["ಪೇಟಿಎಂ"]
+        }
+      },
+      {
+        "id": "phonepe",
+        "displayName": "PhonePe",
+        "tokens": ["phonepe", "phonepay"],
+        "transliterations": {
+          "devanagari": ["फोनपे", "फ़ोनपे", "फोन पे"],
+          "hinglish": ["phone pe"],
+          "tamil": ["போன்பே"],
+          "telugu": ["ఫోన్‌పే"],
+          "bengali": ["ফোনপে"],
+          "kannada": ["ಫೋನ್‍ಪೇ"]
+        }
+      },
+      {
+        "id": "gpay",
+        "displayName": "Google Pay",
+        "tokens": ["gpay", "googlepay"],
+        "transliterations": {
+          "devanagari": ["गूगल पे", "गूगलपे", "जीपे"],
+          "hinglish": ["google pay", "g pay"],
+          "tamil": ["கூகிள் பே"],
+          "telugu": ["గూగుల్ పే"],
+          "bengali": ["গুগল পে"],
+          "kannada": ["ಗೂಗಲ್ ಪೇ"]
+        }
+      },
+      {
+        "id": "bhim",
+        "displayName": "BHIM UPI",
+        "tokens": ["bhim", "bhimupi"],
+        "transliterations": {
+          "devanagari": ["भीम", "भीम यूपीआई"],
+          "hinglish": ["bhim upi"],
+          "tamil": ["பீம்"],
+          "telugu": ["భీమ్"],
+          "bengali": ["ভিম"],
+          "kannada": ["ಭೀಮ್"]
+        }
+      },
+      {
+        "id": "amazonpay",
+        "displayName": "Amazon Pay",
+        "tokens": ["amazonpay"],
+        "transliterations": {
+          "devanagari": ["अमेज़न पे", "अमेजॉन पे"],
+          "hinglish": ["amazon pay"]
+        }
+      },
+      {
+        "id": "cred",
+        "displayName": "CRED",
+        "tokens": ["cred"],
+        "transliterations": {
+          "devanagari": ["क्रेड"],
+          "hinglish": ["cred"]
+        }
+      },
+      {
+        "id": "airtelpayment",
+        "displayName": "Airtel Payments Bank",
+        "tokens": ["airtelpaymentsbank", "airtelmoney"],
+        "transliterations": {
+          "devanagari": ["एयरटेल पेमेंट्स बैंक", "एयरटेल पेमेंट"],
+          "hinglish": ["airtel payments bank"]
+        }
+      },
+      {
+        "id": "jiopayment",
+        "displayName": "Jio Payments Bank",
+        "tokens": ["jiopaymentsbank", "jiopay"],
+        "transliterations": {
+          "devanagari": ["जियो पेमेंट्स बैंक", "जियो पे"],
+          "hinglish": ["jio pay"]
+        }
+      },
+      {
+        "id": "mobikwik",
+        "displayName": "MobiKwik",
+        "tokens": ["mobikwik", "zaakpay"],
+        "transliterations": {
+          "devanagari": ["मोबिक्विक"],
+          "hinglish": ["mobikwik"]
+        }
+      },
+      {
+        "id": "freecharge",
+        "displayName": "Freecharge",
+        "tokens": ["freecharge"],
+        "transliterations": {
+          "devanagari": ["फ्रीचार्ज"],
+          "hinglish": ["freecharge"]
+        }
+      }
+    ],
+    "govt": [
+      {
+        "id": "rbi",
+        "displayName": "Reserve Bank of India",
+        "tokens": ["rbi", "reservebank"],
+        "transliterations": {
+          "devanagari": ["आरबीआई", "रिजर्व बैंक"],
+          "hinglish": ["reserve bank", "rbi bank"]
+        }
+      },
+      {
+        "id": "npci",
+        "displayName": "NPCI",
+        "tokens": ["npci"],
+        "transliterations": {
+          "devanagari": ["एनपीसीआई"],
+          "hinglish": ["npci"]
+        }
+      },
+      {
+        "id": "incometax",
+        "displayName": "Income Tax Department",
+        "tokens": ["incometax", "income-tax", "income.tax", "incometaxdept"],
+        "transliterations": {
+          "devanagari": ["आयकर", "इनकम टैक्स", "आयकर विभाग"],
+          "hinglish": ["aaykar vibhag", "income tax"]
+        }
+      },
+      {
+        "id": "police_challan",
+        "displayName": "Traffic Police / e-Challan",
+        "tokens": ["echallan", "e-challan", "challan", "trafficpolice", "parivahan", "vahan"],
+        "transliterations": {
+          "devanagari": ["ई-चालान", "चालान", "ट्रैफिक पुलिस", "परिवहन"],
+          "hinglish": ["traffic police", "challan", "parivahan"]
+        }
+      },
+      {
+        "id": "cybercrime",
+        "displayName": "Cyber Crime / I4C",
+        "tokens": ["cybercrime", "cyberpolice", "cybercell", "i4c"],
+        "transliterations": {
+          "devanagari": ["साइबर क्राइम", "साइबर पुलिस", "साइबर सेल"],
+          "hinglish": ["cyber crime", "cyber cell", "cyber police"]
+        }
+      },
+      {
+        "id": "uidai",
+        "displayName": "UIDAI / Aadhaar",
+        "tokens": ["uidai", "aadhaar", "aadhar"],
+        "transliterations": {
+          "devanagari": ["आधार", "यूआईडीएआई"],
+          "hinglish": ["aadhaar", "uidai"]
+        }
+      },
+      {
+        "id": "epfo",
+        "displayName": "EPFO / Provident Fund",
+        "tokens": ["epfo", "epfindia", "providentfund"],
+        "transliterations": {
+          "devanagari": ["ईपीएफओ", "भविष्य निधि"],
+          "hinglish": ["epfo", "pf department"]
+        }
+      }
+    ],
+    "utilities": [
+      {
+        "id": "bescom",
+        "displayName": "BESCOM (Bangalore Electricity)",
+        "tokens": ["bescom"],
+        "transliterations": {
+          "kannada": ["ಬೆಸ್ಕಾಂ"],
+          "devanagari": ["बेसकॉम"],
+          "hinglish": ["bescom"]
+        }
+      },
+      {
+        "id": "mahavitaran",
+        "displayName": "Mahavitaran / MSEDCL",
+        "tokens": ["mahavitaran", "msedcl", "mahadiscom"],
+        "transliterations": {
+          "devanagari": ["महावितरण", "महाडिसकॉम"],
+          "hinglish": ["mahavitaran"]
+        }
+      },
+      {
+        "id": "uppcl",
+        "displayName": "UPPCL (Uttar Pradesh Power)",
+        "tokens": ["uppcl", "mvvnl", "pvvnl", "dvvnl", "puvvnl"],
+        "transliterations": {
+          "devanagari": ["यूपीपीसीएल", "उत्तर प्रदेश पावर"],
+          "hinglish": ["uppcl"]
+        }
+      },
+      {
+        "id": "tneb",
+        "displayName": "TANGEDCO / TNEB (Tamil Nadu Electricity)",
+        "tokens": ["tneb", "tangedco"],
+        "transliterations": {
+          "tamil": ["டிஎன்பி", "டான்ஜெட்கோ"]
+        }
+      },
+      {
+        "id": "wbsedcl",
+        "displayName": "WBSEDCL (West Bengal Electricity)",
+        "tokens": ["wbsedcl"],
+        "transliterations": {
+          "bengali": ["ডব্লিউবিএসইডিসিএল"]
+        }
+      },
+      {
+        "id": "tatapower",
+        "displayName": "Tata Power",
+        "tokens": ["tatapower", "tata-power"],
+        "transliterations": {
+          "devanagari": ["टाटा पावर"]
+        }
+      },
+      {
+        "id": "adani_electricity",
+        "displayName": "Adani Electricity",
+        "tokens": ["adanielectricity", "adani-electricity"],
+        "transliterations": {
+          "devanagari": ["अडानी इलेक्ट्रिसिटी"]
+        }
+      },
+      {
+        "id": "bses",
+        "displayName": "BSES (Delhi Electricity)",
+        "tokens": ["bses", "bsesrajdhani", "bsesyamuna"],
+        "transliterations": {
+          "devanagari": ["बीएसईएस"]
+        }
+      },
+      {
+        "id": "generic_electricity",
+        "displayName": "Electricity Department / Board",
+        "tokens": ["electricity", "discom", "powercorp", "vidyut"],
+        "transliterations": {
+          "devanagari": ["बिजली", "विद्युत", "बिजली विभाग", "विद्युत विभाग"],
+          "hinglish": ["bijli vibhag", "vidyut vibhag", "bijli"],
+          "tamil": ["மின்சாரம்", "மின்சார வாரியம்"],
+          "telugu": ["విద్యుత్", "విద్యుత్ శాఖ"],
+          "bengali": ["বিদ্যুৎ", "বিদ্যুৎ দপ্তর"],
+          "kannada": ["ವಿದ್ಯುತ್"]
+        }
+      },
+      {
+        "id": "gas_utility",
+        "displayName": "LPG / City Gas",
+        "tokens": ["indane", "bharatgas", "hpgas", "igl", "mgl"],
+        "transliterations": {
+          "devanagari": ["इण्डेन", "भारत गैस", "एचपी गैस"],
+          "hinglish": ["bharat gas", "hp gas", "indane gas"]
+        }
+      }
+    ]
+  },
+  "highRiskIntentKeywords": [
+    "helpline",
+    "helpdesk",
+    "customercare",
+    "customer-care",
+    "customer.care",
+    "customer care",
+    "tollfree",
+    "toll-free",
+    "toll free",
+    "refund",
+    "cashback",
+    "kyc",
+    "kycupdate",
+    "kyc-update",
+    "kyc.update",
+    "kyc update",
+    "verification",
+    "verify",
+    "unblock",
+    "suspension",
+    "suspended",
+    "power cut",
+    "powercut",
+    "disconnection",
+    "electricity cut",
+    "bill dispute",
+    "penalty",
+    "support desk",
+    "supportdesk",
+    "tech support",
+    "techsupport",
+    "resolution",
+    "recovery",
+    "lottery",
+    "reward",
+    "bonus",
+    "prize",
+    "winner",
+    "claim",
+    "settlement"
+  ],
+  "highRiskIntentTransliterations": {
+    "devanagari": [
+      "हेल्पलाइन",
+      "कस्टमर केयर",
+      "सहायता",
+      "मदद",
+      "सहयोग",
+      "सेवा केंद्र",
+      "रिफंड",
+      "केवाईसी",
+      "सत्यापन",
+      "बिजली कट",
+      "कनेक्शन कटेगा",
+      "मुफ्त",
+      "लॉटरी",
+      "इनाम",
+      "विजेता"
+    ],
+    "hinglish": [
+      "sahayata",
+      "madad",
+      "sewa kendra",
+      "bijli cut",
+      "sahayog desk",
+      "grahak sewa"
+    ],
+    "tamil": ["உதவி", "வாடிக்கையாளர் சேவை", "பணம் திரும்பப் பெறுதல்"],
+    "telugu": ["సహాయం", "సహాయ", "సహాయ కేంద్రం", "కస్టమర్ కేర్", "రీఫండ్"],
+    "bengali": ["সাহায্য", "কাস্টমার কেয়ার", "ফেরত"],
+    "kannada": ["ಸಹಾಯವಾಣಿ", "ಗ್ರಾಹಕ ಸೇವೆ", "ಮರುಪಾವತಿ"]
+  },
+  "exemptContextKeywords": [
+    "agent",
+    "advisor",
+    "advocate",
+    "broker",
+    "sub-broker",
+    "sub broker",
+    "distributor",
+    "mutual fund",
+    "mutualfund",
+    "life insurance",
+    "general insurance",
+    "posp",
+    "canteen",
+    "store",
+    "shop",
+    "stall",
+    "counter",
+    "outlet",
+    "branch",
+    "employee",
+    "society",
+    "club",
+    "mess",
+    "franchise",
+    "merchant",
+    "retailer",
+    "vendor"
+  ],
+  "exemptContextTransliterations": {
+    "devanagari": [
+      "एजेंट",
+      "सलाहकार",
+      "म्यूचुअल फंड",
+      "दुकान",
+      "कैंटीन",
+      "स्टोर",
+      "शाखा",
+      "व्यापारी"
+    ],
+    "hinglish": [
+      "agent",
+      "advisor",
+      "canteen",
+      "store",
+      "vyapari",
+      "dukaan"
+    ]
+  },
+  "categoryMccExemptions": {
+    "utilities": ["4900"],
+    "transit_tolls": ["4784", "7523"],
+    "courier": ["4215"],
+    "financial_intermediaries": ["6211", "6300"]
+  }
+}
