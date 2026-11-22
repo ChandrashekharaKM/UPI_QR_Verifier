@@ -1,11 +1,13 @@
 import type { FeatureVector } from '../types/features.js';
 import type { RuleContext } from '../types/rules.js';
+import type { UrlFields } from '../types/payload.js';
 import { FEATURE_NAMES, FEATURE_SCHEMA_VERSION } from './feature-schema.js';
 import { validateVpa } from '../validators/psp-validator.js';
 import { analyzeStringComposition } from '../validators/entropy.js';
 import { validateAmountAndCurrency } from '../validators/amount-validator.js';
 import { validateMerchantAndUrgency } from '../validators/merchant-validator.js';
 import { jaroWinklerSimilarity } from '../validators/string-distance.js';
+import { parseUrlPayload } from '../parser/url-parser.js';
 
 export function extractFeatureVector(
   ctx: RuleContext,
@@ -14,24 +16,37 @@ export function extractFeatureVector(
   const { parsed, community } = ctx;
   const values = new Array<number>(FEATURE_NAMES.length).fill(0);
 
-  // 0: is_upi_scheme
-  values[0] = parsed.kind === 'upi' ? 1.0 : 0.0;
+  // 0: is_upi_scheme (standard upi or emv bharat qr)
+  values[0] = (parsed.kind === 'upi' || parsed.kind === 'emv') ? 1.0 : 0.0;
   // 1: is_url_scheme
   values[1] = parsed.kind === 'url' ? 1.0 : 0.0;
 
+  let targetUrl: UrlFields | undefined;
   if (parsed.kind === 'url' && parsed.fields.kind === 'url') {
-    const url = parsed.fields.url;
+    targetUrl = parsed.fields.url;
+  } else if (
+    (parsed.kind === 'upi' || parsed.kind === 'emv') &&
+    (parsed.fields.kind === 'upi' || parsed.fields.kind === 'emv') &&
+    parsed.fields.upi.url
+  ) {
+    const parsedUrl = parseUrlPayload(parsed.fields.upi.url);
+    if (parsedUrl.success && parsedUrl.fields) {
+      targetUrl = parsedUrl.fields;
+    }
+  }
+
+  if (targetUrl) {
     // 2: is_insecure_http
-    values[2] = url.protocol === 'http:' ? 1.0 : 0.0;
+    values[2] = targetUrl.protocol === 'http:' ? 1.0 : 0.0;
     // 3: is_ip_address_url
-    values[3] = url.isIpAddress ? 1.0 : 0.0;
+    values[3] = targetUrl.isIpAddress ? 1.0 : 0.0;
     // 4: is_shortened_url
-    values[4] = url.isShortened ? 1.0 : 0.0;
+    values[4] = targetUrl.isShortened ? 1.0 : 0.0;
     // 5: is_suspicious_tld
     const suspiciousTlds = new Set(['top', 'xyz', 'buzz', 'club', 'work', 'loan', 'click', 'gq', 'cf', 'ml', 'ga', 'tk']);
-    values[5] = suspiciousTlds.has(url.topLevelDomain) ? 1.0 : 0.0;
+    values[5] = suspiciousTlds.has(targetUrl.topLevelDomain) ? 1.0 : 0.0;
     // 6: is_punycode_url
-    values[6] = url.isPunycode ? 1.0 : 0.0;
+    values[6] = targetUrl.isPunycode ? 1.0 : 0.0;
   }
 
   // 7: payload_length_norm (clamped to 500)
@@ -40,9 +55,24 @@ export function extractFeatureVector(
   // 8: has_duplicate_params
   values[8] = parsed.hasDuplicateParams ? 1.0 : 0.0;
 
-  if (parsed.kind === 'upi' && parsed.fields.kind === 'upi') {
+  if (
+    (parsed.kind === 'upi' || parsed.kind === 'emv') &&
+    (parsed.fields.kind === 'upi' || parsed.fields.kind === 'emv')
+  ) {
     const upi = parsed.fields.upi;
-    const extraCount = Object.keys(upi.extraParams).length;
+    const BHARAT_QR_STANDARD_KEYS = new Set([
+      'format',
+      'pointOfInitiation',
+      'city',
+      'postalCode',
+      'source',
+      'tipIndicator',
+      'tipValueFixed',
+      'tipValuePercentage',
+      'originalScheme',
+      'action'
+    ]);
+    const extraCount = Object.keys(upi.extraParams).filter((k) => !BHARAT_QR_STANDARD_KEYS.has(k)).length;
     // 9: extra_params_count_norm
     values[9] = Math.min(1.0, extraCount / 5);
 

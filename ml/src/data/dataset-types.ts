@@ -1,7 +1,7 @@
 export interface SampleRow {
   readonly payload: string;
   readonly label: 0 | 1; // 0 = Legitimate / Safe, 1 = Fraud / Scam / Malicious
-  readonly source: 'synthetic' | 'real_phish' | 'real_manual';
+  readonly source: string;
   readonly patternType?: string;
   readonly note?: string;
 }

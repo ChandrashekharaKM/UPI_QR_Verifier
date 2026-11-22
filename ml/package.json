@@ -5,8 +5,10 @@
   "description": "Training and evaluation pipeline for UPI QR Verifier Random Forest model",
   "scripts": {
     "generate": "tsx src/scripts/generate.ts",
+    "build-samples": "tsx src/data/build-real-samples.ts",
     "train": "tsx src/scripts/train-and-evaluate.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@upi-verifier/core": "workspace:*"
@@ -14,6 +16,7 @@
   "devDependencies": {
     "@types/node": "^22.13.1",
     "tsx": "^4.19.3",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "vitest": "^3.2.7"
   }
 }

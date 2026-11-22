@@ -25,7 +25,7 @@ export function loadCsvDataset(csvPath: string): SampleRow[] {
     const fields = parseCsvLine(line);
     const payload = fields[0] ?? '';
     const labelStr = fields[1] ?? '0';
-    const sourceStr = (fields[2] ?? 'real_manual') as 'synthetic' | 'real_phish' | 'real_manual';
+    const sourceStr = fields[2] ?? 'maintainer_consented_scan';
     const patternType = fields[3];
     const note = fields[4];
 

@@ -1,9 +1,10 @@
 import type { FeatureDefinition } from '../types/features.js';
+import type { RandomForestModel } from '../types/model.js';
 
-export const FEATURE_SCHEMA_VERSION = '1.0.0';
+export const FEATURE_SCHEMA_VERSION = '1.1.0';
 
 export const FEATURE_DEFINITIONS: readonly FeatureDefinition[] = [
-  { index: 0, name: 'is_upi_scheme', description: '1 if payload starts with upi://pay, 0 otherwise', range: [0, 1] },
+  { index: 0, name: 'is_upi_scheme', description: '1 if payload is a standard UPI URI or EMV BharatQR payment, 0 otherwise', range: [0, 1] },
   { index: 1, name: 'is_url_scheme', description: '1 if payload is an HTTP/HTTPS web URL', range: [0, 1] },
   { index: 2, name: 'is_insecure_http', description: '1 if URL uses unencrypted HTTP', range: [0, 1] },
   { index: 3, name: 'is_ip_address_url', description: '1 if URL hostname is a raw IP address', range: [0, 1] },
@@ -36,3 +37,65 @@ export const FEATURE_DEFINITIONS: readonly FeatureDefinition[] = [
 ];
 
 export const FEATURE_NAMES: readonly string[] = FEATURE_DEFINITIONS.map((f) => f.name);
+
+/**
+ * Validates that a RandomForestModel's feature list and schema version are strictly synchronized with FEATURE_NAMES.
+ * Fails with descriptive errors if any feature is missing, extra, renamed, or out of order.
+ */
+export function validateModelFeatureSchema(
+  model: RandomForestModel,
+  expectedFeatureNames: readonly string[] = FEATURE_NAMES,
+  expectedVersion: string = FEATURE_SCHEMA_VERSION
+): { isValid: boolean; errors: string[] } {
+  const errors: string[] = [];
+
+  if (model.version !== expectedVersion) {
+    errors.push(
+      `Model schema version mismatch: model.json version is "${model.version}", but current FEATURE_SCHEMA_VERSION is "${expectedVersion}".`
+    );
+  }
+
+  if (model.featureNames.length !== expectedFeatureNames.length) {
+    errors.push(
+      `Feature count mismatch: model has ${model.featureNames.length} features, but schema defines ${expectedFeatureNames.length} features.`
+    );
+  }
+
+  const maxLen = Math.max(model.featureNames.length, expectedFeatureNames.length);
+  for (let i = 0; i < maxLen; i++) {
+    const modelFeat = model.featureNames[i];
+    const expectedFeat = expectedFeatureNames[i];
+    if (modelFeat !== expectedFeat) {
+      errors.push(
+        `Feature divergence at index ${i}: model has "${modelFeat ?? '<missing>'}", schema defines "${expectedFeat ?? '<missing>'}".`
+      );
+    }
+  }
+
+  // Validate that all decision tree splits reference valid feature indices
+  if (Array.isArray(model.trees)) {
+    for (let t = 0; t < model.trees.length; t++) {
+      const tree = model.trees[t];
+      if (!tree?.root) continue;
+
+      const stack = [tree.root];
+      while (stack.length > 0) {
+        const node = stack.pop()!;
+        if (!node.isLeaf && node.featureIndex !== undefined) {
+          if (node.featureIndex < 0 || node.featureIndex >= expectedFeatureNames.length) {
+            errors.push(
+              `Tree ${t} references invalid featureIndex ${node.featureIndex} (valid range is 0 to ${expectedFeatureNames.length - 1}).`
+            );
+          }
+        }
+        if (node.leftChild) stack.push(node.leftChild);
+        if (node.rightChild) stack.push(node.rightChild);
+      }
+    }
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+}
