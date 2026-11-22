@@ -11,8 +11,9 @@ import {
 import { useRouter } from 'expo-router';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as Haptics from 'expo-haptics';
-import { decodeQrFromImageData } from '../lib/web-qr';
+import { decodeAllQrFromImageData, detectAllWithNativeBarcodeDetector } from '../lib/web-qr';
 import { COLORS } from '../lib/theme';
+import { MultipleQrModal } from '../components/MultipleQrModal';
 
 export default function ScanScreen() {
   const router = useRouter();
@@ -21,16 +22,23 @@ export default function ScanScreen() {
   const [torchEnabled, setTorchEnabled] = useState(false);
   const [manualInput, setManualInput] = useState('');
   const [showManual, setShowManual] = useState(false);
+  const [candidateQrs, setCandidateQrs] = useState<string[]>([]);
+  const [showMultiQrModal, setShowMultiQrModal] = useState(false);
+
+  // Buffer for multi-barcode accumulation in live camera feed
+  const collectedCodesRef = useRef<Set<string>>(new Set());
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Web specific camera refs
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const webStreamRef = useRef<MediaStream | null>(null);
-  const [webReady, setWebReady] = useState(false);
+  const [_webReady, setWebReady] = useState(false);
 
   const handleQrDetected = (data: string) => {
     if (scanned || !data) return;
     setScanned(true);
+    setShowMultiQrModal(false);
 
     if (Platform.OS !== 'web') {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -73,26 +81,55 @@ export default function ScanScreen() {
           if (isActive) setWebReady(true);
         }
 
-        const scanFrame = () => {
-          if (!isActive || scanned) return;
+        const scanFrame = async () => {
+          if (!isActive || scanned || showMultiQrModal) return;
           const video = videoRef.current;
           const canvas = canvasRef.current;
 
-          if (video && canvas && video.readyState === video.HAVE_ENOUGH_DATA) {
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            const ctx = canvas.getContext('2d', { willReadFrequently: true });
-            if (ctx) {
-              ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-              const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-              const code = decodeQrFromImageData(imgData.data, imgData.width, imgData.height);
-              if (code) {
-                handleQrDetected(code);
-                return;
+          if (video && video.readyState === video.HAVE_ENOUGH_DATA) {
+            // 1. Try native BarcodeDetector directly on live video stream (hardware accelerated)
+            const nativeCodes = await detectAllWithNativeBarcodeDetector(video);
+            if (nativeCodes.length > 1) {
+              // Multiple codes found in camera view: NEVER silently pick one!
+              setScanned(true);
+              if (webStreamRef.current) {
+                webStreamRef.current.getTracks().forEach((track) => track.stop());
+              }
+              setCandidateQrs(nativeCodes);
+              setShowMultiQrModal(true);
+              return;
+            } else if (nativeCodes.length === 1) {
+              handleQrDetected(nativeCodes[0]!);
+              return;
+            }
+
+            // 2. Fall back to canvas & jsQR with iterative multi-QR extraction
+            if (canvas) {
+              canvas.width = video.videoWidth;
+              canvas.height = video.videoHeight;
+              const ctx = canvas.getContext('2d', { willReadFrequently: true });
+              if (ctx) {
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const codes = decodeAllQrFromImageData(imgData.data, imgData.width, imgData.height);
+                if (codes.length > 1) {
+                  setScanned(true);
+                  if (webStreamRef.current) {
+                    webStreamRef.current.getTracks().forEach((track) => track.stop());
+                  }
+                  setCandidateQrs(codes);
+                  setShowMultiQrModal(true);
+                  return;
+                } else if (codes.length === 1) {
+                  handleQrDetected(codes[0]!);
+                  return;
+                }
               }
             }
           }
-          animId = requestAnimationFrame(scanFrame);
+          if (isActive && !scanned && !showMultiQrModal) {
+            animId = requestAnimationFrame(scanFrame);
+          }
         };
 
         animId = requestAnimationFrame(scanFrame);
@@ -111,7 +148,7 @@ export default function ScanScreen() {
         webStreamRef.current.getTracks().forEach((t) => t.stop());
       }
     };
-  }, [scanned]);
+  }, [scanned, showMultiQrModal]);
 
   if (!permission && Platform.OS !== 'web') {
     return (
@@ -152,8 +189,41 @@ export default function ScanScreen() {
             barcodeTypes: ['qr']
           }}
           onBarcodeScanned={(result) => {
-            if (result.data) {
-              handleQrDetected(result.data);
+            if (scanned || showMultiQrModal || !result.data) return;
+            const trimmed = result.data.trim();
+            if (!trimmed) return;
+
+            collectedCodesRef.current.add(trimmed);
+
+            if (collectedCodesRef.current.size > 1) {
+              if (debounceTimerRef.current) {
+                clearTimeout(debounceTimerRef.current);
+                debounceTimerRef.current = null;
+              }
+              setScanned(true);
+              if (Platform.OS !== 'web') {
+                void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+              }
+              setCandidateQrs(Array.from(collectedCodesRef.current));
+              setShowMultiQrModal(true);
+              return;
+            }
+
+            if (!debounceTimerRef.current) {
+              debounceTimerRef.current = setTimeout(() => {
+                debounceTimerRef.current = null;
+                const codes = Array.from(collectedCodesRef.current);
+                if (codes.length > 1) {
+                  setScanned(true);
+                  if (Platform.OS !== 'web') {
+                    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+                  }
+                  setCandidateQrs(codes);
+                  setShowMultiQrModal(true);
+                } else if (codes.length === 1) {
+                  handleQrDetected(codes[0]!);
+                }
+              }, 250);
             }
           }}
         />
@@ -247,6 +317,22 @@ export default function ScanScreen() {
           </View>
         </View>
       ) : null}
+
+      {/* Multiple QR Codes Modal Selector */}
+      <MultipleQrModal
+        visible={showMultiQrModal}
+        qrCodes={candidateQrs}
+        onSelect={(payload) => {
+          setShowMultiQrModal(false);
+          handleQrDetected(payload);
+        }}
+        onCancel={() => {
+          setShowMultiQrModal(false);
+          setCandidateQrs([]);
+          collectedCodesRef.current.clear();
+          setScanned(false);
+        }}
+      />
     </View>
   );
 }

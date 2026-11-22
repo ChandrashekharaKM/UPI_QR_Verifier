@@ -87,15 +87,13 @@ export default function HistoryScreen() {
           const riskColor = getRiskColor(item.category);
           const riskBg = getRiskBgColor(item.category);
 
-          const title =
-            item.parsed.kind === 'upi' && item.parsed.fields.kind === 'upi'
-              ? item.parsed.fields.upi.pa
-              : item.parsed.rawPayload;
+          const isUpiOrEmv =
+            (item.parsed.kind === 'upi' || item.parsed.kind === 'emv') &&
+            (item.parsed.fields.kind === 'upi' || item.parsed.fields.kind === 'emv');
 
-          const declaredName =
-            item.parsed.kind === 'upi' && item.parsed.fields.kind === 'upi'
-              ? item.parsed.fields.upi.pn
-              : undefined;
+          const title = isUpiOrEmv ? item.parsed.fields.upi.pa : item.parsed.rawPayload;
+
+          const declaredName = isUpiOrEmv ? item.parsed.fields.upi.pn : undefined;
 
           return (
             <View key={item.evaluatedAt} style={styles.itemCard}>

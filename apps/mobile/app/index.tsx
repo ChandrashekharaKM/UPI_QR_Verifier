@@ -124,10 +124,10 @@ export default function HomeScreen() {
           recentScans.map((scan) => {
             const riskColor = getRiskColor(scan.category);
             const riskBg = getRiskBgColor(scan.category);
-            const vpa =
-              scan.parsed.kind === 'upi' && scan.parsed.fields.kind === 'upi'
-                ? scan.parsed.fields.upi.pa
-                : scan.parsed.rawPayload.slice(0, 30);
+            const isUpiOrEmv =
+              (scan.parsed.kind === 'upi' || scan.parsed.kind === 'emv') &&
+              (scan.parsed.fields.kind === 'upi' || scan.parsed.fields.kind === 'emv');
+            const vpa = isUpiOrEmv ? scan.parsed.fields.upi.pa : scan.parsed.rawPayload.slice(0, 30);
 
             return (
               <TouchableOpacity

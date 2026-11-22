@@ -1,9 +1,31 @@
 import { Platform } from 'react-native';
-import type { CommunityReputationSignal, VerificationResult } from '@upi-verifier/core';
+import type {
+  CommunityReputationSignal,
+  CommunityPeriodBreakdown,
+  VpaCompositeResult
+} from '@upi-verifier/core';
 
-// In Android emulator, 10.0.2.2 maps to localhost; in web, localhost:3001
-const DEFAULT_HOST = Platform.OS === 'android' ? 'http://10.0.2.2:3001' : 'http://localhost:3001';
-export const API_BASE_URL = process.env['EXPO_PUBLIC_API_URL'] ?? DEFAULT_HOST;
+// In Android emulator, 10.0.2.2 maps to localhost; in web, localhost:3001 or current host
+function resolveApiBaseUrl(): string {
+  if (process.env['EXPO_PUBLIC_API_URL']) {
+    return process.env['EXPO_PUBLIC_API_URL'];
+  }
+  if (Platform.OS === 'android') {
+    return 'http://10.0.2.2:3001';
+  }
+  if (
+    Platform.OS === 'web' &&
+    typeof window !== 'undefined' &&
+    window.location?.hostname &&
+    window.location.hostname !== 'localhost' &&
+    window.location.hostname !== '127.0.0.1'
+  ) {
+    return `http://${window.location.hostname}:3001`;
+  }
+  return 'http://localhost:3001';
+}
+
+export const API_BASE_URL = resolveApiBaseUrl();
 
 export interface ReputationFetchResult {
   readonly isOnline: boolean;
@@ -35,9 +57,13 @@ export async function fetchVpaReputation(vpa: string): Promise<ReputationFetchRe
     const data = (await response.json()) as {
       vpa: string;
       reportCount: number;
+      uniqueReporters?: number;
+      decayedScore?: number;
+      recentReportCount?: number;
       lastReported?: string;
       lastReportedDaysAgo?: number;
       topCategories: string[];
+      breakdownByPeriod?: CommunityPeriodBreakdown;
     };
 
     if (data.reportCount > 0) {
@@ -45,8 +71,12 @@ export async function fetchVpaReputation(vpa: string): Promise<ReputationFetchRe
         isOnline: true,
         signal: {
           reportCount: data.reportCount,
+          uniqueReporters: data.uniqueReporters,
+          decayedScore: data.decayedScore,
+          recentReportCount: data.recentReportCount,
           ...(data.lastReportedDaysAgo !== undefined ? { lastReportedDaysAgo: data.lastReportedDaysAgo } : {}),
-          topCategories: data.topCategories
+          topCategories: data.topCategories,
+          breakdownByPeriod: data.breakdownByPeriod
         }
       };
     }
@@ -54,12 +84,37 @@ export async function fetchVpaReputation(vpa: string): Promise<ReputationFetchRe
     return {
       isOnline: true
     };
-  } catch (err: unknown) {
+  } catch {
     clearTimeout(timeoutId);
     return {
       isOnline: false,
       notice: 'offline: community reports unavailable'
     };
+  }
+}
+
+export async function verifyVpaOnline(
+  vpaOrPayload: string
+): Promise<VpaCompositeResult | null> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 2500);
+
+  try {
+    const encoded = encodeURIComponent(vpaOrPayload.trim());
+    const response = await fetch(`${API_BASE_URL}/v1/vpa/${encoded}/verify`, {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+      signal: controller.signal
+    });
+
+    clearTimeout(timeoutId);
+    if (response.ok) {
+      return (await response.json()) as VpaCompositeResult;
+    }
+    return null;
+  } catch {
+    clearTimeout(timeoutId);
+    return null;
   }
 }
 
@@ -102,7 +157,7 @@ export async function submitScamReport(
       success: false,
       message: data.message ?? 'Failed to submit report.'
     };
-  } catch (err: unknown) {
+  } catch {
     return {
       success: false,
       message: 'Network offline: Could not connect to reporting server.'

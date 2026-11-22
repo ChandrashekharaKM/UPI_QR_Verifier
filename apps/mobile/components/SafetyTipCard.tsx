@@ -31,8 +31,14 @@ export const SAFETY_TIPS: SafetyTip[] = [
   {
     id: 'tip-4',
     icon: '🏷️',
-    title: 'Physical Sticker Swapping',
-    description: 'Check physical QR stands at shops. Criminals stick their own fraudulent QR stickers over legitimate shopkeeper codes.'
+    title: 'Physical Sticker Tampering Warning',
+    description: 'Check physical QR stands at shops. Criminals stick their own fraudulent QR stickers over legitimate shopkeeper codes. Feel the standee surface for raised edges or overlapping stickers before paying.'
+  },
+  {
+    id: 'tip-5',
+    icon: '🔍',
+    title: 'Check Name Before Entering PIN',
+    description: 'When your UPI app opens, inspect the bank-registered beneficiary name on the screen before entering your UPI PIN to ensure funds go to the intended recipient.'
   }
 ];
 

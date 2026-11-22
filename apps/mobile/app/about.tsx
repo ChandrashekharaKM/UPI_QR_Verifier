@@ -89,6 +89,31 @@ export default function AboutScreen() {
         </View>
       </View>
 
+      {/* Real-World QR Standards Support */}
+      <View style={styles.card}>
+        <View style={styles.cardBadge}>
+          <Text style={styles.badgeText}>STANDARDS</Text>
+        </View>
+        <Text style={styles.cardTitle}>Real-World Standees & Formats</Text>
+        <Text style={styles.cardBody}>
+          In addition to standard <Text style={styles.codeText}>upi://pay</Text> links, the verifier natively decodes and verifies official <Text style={styles.highlightText}>BharatQR / EMVCo</Text> merchant standees (Tag-Length-Value format starting with 000201), Android intent links (<Text style={styles.codeText}>intent://pay</Text>), and cryptographically signed merchant stickers from PhonePe, Paytm, Google Pay, and Pine Labs.
+        </Text>
+      </View>
+
+      {/* Official Cybercrime Emergency Helpline */}
+      <View style={[styles.card, { borderColor: '#F87171' }]}>
+        <Text style={[styles.cardTitle, { color: '#F87171' }]}>📞 Official Fraud Reporting Helpline</Text>
+        <Text style={styles.cardBody}>
+          If you have been targeted by a payment scam or have sent funds under coercion:
+          {'\n\n'}
+          • <Text style={styles.boldText}>National Cyber Crime Helpline:</Text> Call <Text style={styles.highlightText}>1930</Text> immediately to freeze fraudulent transaction rails.
+          {'\n'}
+          • <Text style={styles.boldText}>Online Portal:</Text> File an official incident report at <Text style={styles.codeText}>cybercrime.gov.in</Text>.
+          {'\n'}
+          • <Text style={styles.boldText}>Golden Rule:</Text> You <Text style={styles.boldText}>NEVER</Text> scan a QR code or enter your UPI PIN to receive money.
+        </Text>
+      </View>
+
       {/* Privacy Guarantee */}
       <View style={styles.card}>
         <Text style={styles.cardTitle}>🔒 Privacy & On-Device Processing</Text>

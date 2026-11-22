@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { COLORS } from '../lib/theme';
 
 interface DisclaimerBannerProps {
   customText?: string;
