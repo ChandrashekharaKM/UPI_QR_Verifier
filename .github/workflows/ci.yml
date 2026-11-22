@@ -5,6 +5,10 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  schedule:
+    # Run nightly fixture verification at 02:00 UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
 
 jobs:
   validate:
@@ -45,13 +49,142 @@ jobs:
       - name: Approve Native Build Scripts
         run: pnpm approve-builds --all
 
+      - name: Code Quality & Lint
+        run: pnpm lint
+
       - name: Strict Typecheck (All Workspaces)
         run: pnpm typecheck
+
+      - name: Verify PSP Allowlist Freshness
+        run: pnpm check-freshness
 
       - name: Execute Full Test Suites
         run: |
           pnpm --filter @upi-verifier/core test
           pnpm --filter @upi-verifier/api test
+          pnpm --filter @upi-verifier/ml test
+          pnpm --filter @upi-verifier/mobile test
 
       - name: Build Core Library Bundle
         run: pnpm build:core
+
+  mobile-checks:
+    name: Mobile Typecheck & Web Export Build
+    runs-on: ubuntu-latest
+    needs: validate
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.10.1
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Approve Native Build Scripts
+        run: pnpm approve-builds --all
+
+      - name: Build Core Library Bundle
+        run: pnpm build:core
+
+      - name: Mobile Workspace Typecheck
+        run: pnpm --filter @upi-verifier/mobile typecheck
+
+      - name: Mobile Web Export Build
+        env:
+          EXPO_NO_TELEMETRY: '1'
+        run: pnpm --filter @upi-verifier/mobile build:web
+
+  docker-build:
+    name: API Docker Build & Validation
+    runs-on: ubuntu-latest
+    needs: validate
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build API Docker Image
+        run: |
+          docker build -t upi-verifier-api:latest -f apps/api/Dockerfile .
+
+  nightly-fixtures:
+    name: Fixture Suite & Parser Fuzz Testing
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push'
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.10.1
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Approve Native Build Scripts
+        run: pnpm approve-builds --all
+
+      - name: Build Core Library Bundle
+        run: pnpm build:core
+
+      - name: Run Core Fixtures Suite & Property-Based Fuzz Tests
+        run: |
+          pnpm --filter @upi-verifier/core test test/fixtures.test.ts
+          pnpm --filter @upi-verifier/core test test/fuzz-parsers.test.ts
+          pnpm --filter @upi-verifier/core test test/real-world-acceptance.test.ts
+          pnpm --filter @upi-verifier/core test test/acceptance-15.test.ts
+
+      - name: Run Mobile Decoder Engine PNG Fixtures & Real-World Acceptance Suite
+        run: |
+          pnpm --filter @upi-verifier/mobile test test/decoder-fixtures.test.ts
+          pnpm --filter @upi-verifier/mobile test test/real-world-acceptance.test.ts
+          pnpm --filter @upi-verifier/mobile test test/acceptance-15.test.ts
