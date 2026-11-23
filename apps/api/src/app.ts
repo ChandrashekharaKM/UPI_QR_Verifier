@@ -5,38 +5,105 @@ import rateLimit from '@fastify/rate-limit';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
 import { DatabaseClient } from './db/client.js';
+import { PspLookupService, type PspLookupServiceConfig } from './services/psp-lookup.js';
+import { ThreatIntelService, type ThreatIntelServiceConfig } from './services/threat-intel.js';
 import { healthRoutes } from './routes/health.js';
 import { reputationRoutes } from './routes/reputation.js';
 import { reportsRoutes } from './routes/reports.js';
 import { verifyRoutes } from './routes/verify.js';
+import { vpaRoutes } from './routes/vpa.js';
 
 export interface AppOptions {
   readonly dbPath?: string;
   readonly logger?: boolean;
+  readonly bodyLimit?: number;
+  readonly corsOrigins?: readonly string[];
+  readonly rateLimitMax?: number;
+  readonly rateLimitTimeWindow?: string;
+  readonly pspLookup?: PspLookupService | PspLookupServiceConfig;
+  readonly threatIntel?: ThreatIntelService | ThreatIntelServiceConfig;
 }
 
 export async function buildApp(opts: AppOptions = {}): Promise<FastifyInstance> {
   const fastify = Fastify({
-    logger: opts.logger ?? false,
-    bodyLimit: 1048576 // 1 MB payload size limit
+    logger: opts.logger
+      ? {
+          level: 'info',
+          serializers: {
+            req(req) {
+              return {
+                id: req.id,
+                method: req.method,
+                url: req.url,
+                remoteAddress: req.ip
+                // NOTE: req.body, req.query, payload, and VPAs are strictly omitted for user privacy
+              };
+            },
+            res(res) {
+              return {
+                statusCode: res.statusCode
+              };
+            }
+          }
+        }
+      : false,
+    bodyLimit: opts.bodyLimit ?? 16384 // 16 KB default limit to prevent oversized request DOS
   });
 
   const dbClient = new DatabaseClient(opts.dbPath ?? ':memory:');
+  const pspLookupService =
+    opts.pspLookup instanceof PspLookupService
+      ? opts.pspLookup
+      : new PspLookupService(opts.pspLookup);
+  const threatIntelService =
+    opts.threatIntel instanceof ThreatIntelService
+      ? opts.threatIntel
+      : new ThreatIntelService(opts.threatIntel);
 
-  // Security plugins
+  // Security headers plugin
   await fastify.register(helmet, {
     contentSecurityPolicy: false
   });
 
+  // Strict CORS allowlist
+  const defaultAllowedOrigins = [
+    'http://localhost:8081',
+    'http://localhost:19006',
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'https://upiverifier.app'
+  ];
+  const envOrigins = process.env.CORS_ORIGIN
+    ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim())
+    : undefined;
+  const allowedOrigins = opts.corsOrigins ?? envOrigins ?? defaultAllowedOrigins;
+
   await fastify.register(cors, {
-    origin: '*',
+    origin: (origin, cb) => {
+      // Allow requests with no origin header (e.g. mobile apps, curl, server-to-server)
+      if (!origin) {
+        cb(null, true);
+        return;
+      }
+      if (allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
+        cb(null, true);
+        return;
+      }
+      cb(new Error(`Origin ${origin} not allowed by CORS allowlist`), false);
+    },
     methods: ['GET', 'POST', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
   });
 
+  // Rate limiting plugin
   await fastify.register(rateLimit, {
-    max: 120,
-    timeWindow: '1 minute'
+    max: opts.rateLimitMax ?? 120,
+    timeWindow: opts.rateLimitTimeWindow ?? '1 minute',
+    errorResponseBuilder: (_req, context) => ({
+      statusCode: 429,
+      error: 'Too Many Requests',
+      message: `Rate limit exceeded. Try again in ${context.after}.`
+    })
   });
 
   // OpenAPI / Swagger documentation
@@ -44,7 +111,7 @@ export async function buildApp(opts: AppOptions = {}): Promise<FastifyInstance> 
     openapi: {
       info: {
         title: 'UPI QR Verifier - Payment QR code Alert System API',
-        description: 'Backend services for crowd-sourced reputation, threat intelligence and scan verification',
+        description: 'Backend services for crowd-sourced reputation, threat intelligence, and scan verification',
         version: '1.0.0'
       },
       servers: [
@@ -70,13 +137,37 @@ export async function buildApp(opts: AppOptions = {}): Promise<FastifyInstance> 
     }
   });
 
+  // Expose raw OpenAPI 3.0 specification as JSON
+  fastify.get('/openapi.json', { schema: { hide: true } }, async (_req, reply) => {
+    reply.header('Content-Type', 'application/json; charset=utf-8');
+    return fastify.swagger();
+  });
+
+  // Root welcome / index route: redirect browser users to /documentation
+  fastify.get('/', { schema: { hide: true } }, async (request, reply) => {
+    const acceptHeader = request.headers['accept'] ?? '';
+    if (acceptHeader.includes('text/html')) {
+      return reply.redirect('/documentation');
+    }
+    return {
+      status: 'ok',
+      service: 'UPI QR Verifier - Payment QR code Alert System API',
+      version: '1.0.0',
+      documentation: '/documentation',
+      health: '/v1/health',
+      openapi: '/openapi.json',
+      webApp: 'http://localhost:8081'
+    };
+  });
+
   // Register API v1 routes
   await fastify.register(
     async (v1) => {
       await v1.register(healthRoutes);
       await v1.register(reputationRoutes, { dbClient });
       await v1.register(reportsRoutes, { dbClient });
-      await v1.register(verifyRoutes, { dbClient });
+      await v1.register(verifyRoutes, { dbClient, pspLookupService, threatIntelService });
+      await v1.register(vpaRoutes, { dbClient, pspLookupService, threatIntelService });
     },
     { prefix: '/v1' }
   );

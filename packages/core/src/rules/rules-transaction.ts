@@ -7,7 +7,10 @@ import { validateMerchantAndUrgency } from '../validators/merchant-validator.js'
  * Why: QR codes pre-filling huge sums (> Rs 25,000) or exceeding NPCI guidelines are high-risk because accidental scanning or muscle-memory PIN entry can cause severe financial loss.
  */
 export function ruleHighAmount(ctx: RuleContext): RuleResult {
-  if (ctx.parsed.kind !== 'upi' || ctx.parsed.fields.kind !== 'upi') {
+  if (
+    (ctx.parsed.kind !== 'upi' && ctx.parsed.kind !== 'emv') ||
+    (ctx.parsed.fields.kind !== 'upi' && ctx.parsed.fields.kind !== 'emv')
+  ) {
     return {
       id: 'RULE_HIGH_AMOUNT',
       triggered: false,
@@ -45,7 +48,10 @@ export function ruleHighAmount(ctx: RuleContext): RuleResult {
  * Why: Amounts like 9,999, 19,999, 49,999 are psychological pricing patterns exploited by scam schemes.
  */
 export function ruleRoundBaitAmount(ctx: RuleContext): RuleResult {
-  if (ctx.parsed.kind !== 'upi' || ctx.parsed.fields.kind !== 'upi') {
+  if (
+    (ctx.parsed.kind !== 'upi' && ctx.parsed.kind !== 'emv') ||
+    (ctx.parsed.fields.kind !== 'upi' && ctx.parsed.fields.kind !== 'emv')
+  ) {
     return {
       id: 'RULE_ROUND_BAIT_AMOUNT',
       triggered: false,
@@ -80,7 +86,10 @@ export function ruleRoundBaitAmount(ctx: RuleContext): RuleResult {
  * UPI NEVER requires a PIN or scanning a QR code to receive money!
  */
 export function ruleRefundVerifyNote(ctx: RuleContext): RuleResult {
-  if (ctx.parsed.kind !== 'upi' || ctx.parsed.fields.kind !== 'upi') {
+  if (
+    (ctx.parsed.kind !== 'upi' && ctx.parsed.kind !== 'emv') ||
+    (ctx.parsed.fields.kind !== 'upi' && ctx.parsed.fields.kind !== 'emv')
+  ) {
     return {
       id: 'RULE_REFUND_VERIFY_NOTE',
       triggered: false,
@@ -101,7 +110,11 @@ export function ruleRefundVerifyNote(ctx: RuleContext): RuleResult {
     note.includes('verification') ||
     note.includes('received') ||
     note.includes('receive money') ||
+    note.includes('accept payment') ||
+    note.includes('accept money') ||
     note.includes('cashback claim') ||
+    note.includes('scratch card') ||
+    note.includes('prize claim') ||
     note.includes('collect');
 
   // If note promises refund/receive or micro authorization scam
@@ -131,7 +144,10 @@ export function ruleRefundVerifyNote(ctx: RuleContext): RuleResult {
  * Scammers register private individual accounts under names like "Apple Store Electronics" to bypass business verification.
  */
 export function ruleMissingMcBusiness(ctx: RuleContext): RuleResult {
-  if (ctx.parsed.kind !== 'upi' || ctx.parsed.fields.kind !== 'upi') {
+  if (
+    (ctx.parsed.kind !== 'upi' && ctx.parsed.kind !== 'emv') ||
+    (ctx.parsed.fields.kind !== 'upi' && ctx.parsed.fields.kind !== 'emv')
+  ) {
     return {
       id: 'RULE_MISSING_MC_BUSINESS',
       triggered: false,

@@ -3,7 +3,12 @@ import { predictTree, predictRandomForest } from '../src/ml/inference.js';
 import { extractFeatureVector } from '../src/features/feature-extractor.js';
 import { parsePayload } from '../src/parser/payload-parser.js';
 import type { DecisionTreeNode, RandomForestModel } from '../src/types/model.js';
-import { FEATURE_NAMES } from '../src/features/feature-schema.js';
+import {
+  FEATURE_NAMES,
+  FEATURE_SCHEMA_VERSION,
+  validateModelFeatureSchema
+} from '../src/features/feature-schema.js';
+import defaultModelData from '../src/model/model.json' with { type: 'json' };
 
 describe('ML Tree Traversal and Feature Extraction', () => {
   it('60. traverses decision tree nodes accurately based on feature thresholds', () => {
@@ -29,7 +34,7 @@ describe('ML Tree Traversal and Feature Extraction', () => {
 
   it('61. averages probabilities across multiple trees in random forest', () => {
     const forest: RandomForestModel = {
-      version: '1.0.0',
+      version: FEATURE_SCHEMA_VERSION,
       nEstimators: 3,
       featureNames: FEATURE_NAMES,
       trees: [
@@ -40,7 +45,7 @@ describe('ML Tree Traversal and Feature Extraction', () => {
     };
 
     const vector = {
-      version: '1.0.0',
+      version: FEATURE_SCHEMA_VERSION,
       names: FEATURE_NAMES,
       values: new Array(FEATURE_NAMES.length).fill(0)
     };
@@ -50,13 +55,13 @@ describe('ML Tree Traversal and Feature Extraction', () => {
     expect(prob).toBeCloseTo(0.5, 5);
   });
 
-  it('62. extracts full feature vector with strictly documented 30 numerical features', () => {
+  it('62. extracts full feature vector with strictly documented numerical features', () => {
     const parsed = parsePayload('upi://pay?pa=merchant@okhdfcbank&pn=SuperStore&am=500&mc=5411');
     const vector = extractFeatureVector({ parsed }, 15);
 
-    expect(vector.names.length).toBe(30);
-    expect(vector.values.length).toBe(30);
-    expect(vector.version).toBe('1.0.0');
+    expect(vector.names.length).toBe(FEATURE_NAMES.length);
+    expect(vector.values.length).toBe(FEATURE_NAMES.length);
+    expect(vector.version).toBe(FEATURE_SCHEMA_VERSION);
 
     for (let i = 0; i < vector.values.length; i++) {
       const val = vector.values[i];
@@ -68,18 +73,102 @@ describe('ML Tree Traversal and Feature Extraction', () => {
 
   it('63. handles empty or degenerate trees gracefully without crashing', () => {
     const emptyForest: RandomForestModel = {
-      version: '1.0.0',
+      version: FEATURE_SCHEMA_VERSION,
       nEstimators: 0,
       featureNames: FEATURE_NAMES,
       trees: []
     };
 
     const vector = {
-      version: '1.0.0',
+      version: FEATURE_SCHEMA_VERSION,
       names: FEATURE_NAMES,
       values: new Array(FEATURE_NAMES.length).fill(0)
     };
 
     expect(predictRandomForest(emptyForest, vector)).toBe(0.0);
+  });
+
+  it('64. model.json is strictly synchronized with FEATURE_NAMES and FEATURE_SCHEMA_VERSION', () => {
+    const model = defaultModelData as unknown as RandomForestModel;
+
+    // 1. Must match current FEATURE_SCHEMA_VERSION
+    expect(model.version).toBe(FEATURE_SCHEMA_VERSION);
+
+    // 2. Feature count must strictly match
+    expect(model.featureNames.length).toBe(FEATURE_NAMES.length);
+
+    // 3. Exact element-by-element ordering and naming must match
+    expect(model.featureNames).toEqual(FEATURE_NAMES);
+
+    // 4. validateModelFeatureSchema must pass with 0 errors
+    const validation = validateModelFeatureSchema(model);
+    expect(validation.isValid).toBe(true);
+    expect(validation.errors).toEqual([]);
+
+    // 5. All decision tree nodes must only reference valid feature indices [0, FEATURE_NAMES.length - 1]
+    expect(model.trees.length).toBeGreaterThan(0);
+    for (let t = 0; t < model.trees.length; t++) {
+      const tree = model.trees[t]!;
+      const stack = [tree.root];
+      while (stack.length > 0) {
+        const node = stack.pop()!;
+        if (!node.isLeaf && node.featureIndex !== undefined) {
+          expect(node.featureIndex).toBeGreaterThanOrEqual(0);
+          expect(node.featureIndex).toBeLessThan(FEATURE_NAMES.length);
+        }
+        if (node.leftChild) stack.push(node.leftChild);
+        if (node.rightChild) stack.push(node.rightChild);
+      }
+    }
+  });
+
+  it('65. fails and detects divergence if model.json or schema features diverge', () => {
+    const model = defaultModelData as unknown as RandomForestModel;
+
+    // Divergence 1: Missing feature
+    const missingFeaturesModel: RandomForestModel = {
+      ...model,
+      featureNames: model.featureNames.slice(0, -1)
+    };
+    const missingRes = validateModelFeatureSchema(missingFeaturesModel);
+    expect(missingRes.isValid).toBe(false);
+    expect(missingRes.errors.some((e) => e.includes('Feature count mismatch'))).toBe(true);
+
+    // Divergence 2: Re-ordered features
+    const reorderedModel: RandomForestModel = {
+      ...model,
+      featureNames: [model.featureNames[1]!, model.featureNames[0]!, ...model.featureNames.slice(2)]
+    };
+    const reorderedRes = validateModelFeatureSchema(reorderedModel);
+    expect(reorderedRes.isValid).toBe(false);
+    expect(reorderedRes.errors.some((e) => e.includes('Feature divergence at index'))).toBe(true);
+
+    // Divergence 3: Outdated version
+    const outdatedVersionModel: RandomForestModel = {
+      ...model,
+      version: '0.9.0'
+    };
+    const versionRes = validateModelFeatureSchema(outdatedVersionModel);
+    expect(versionRes.isValid).toBe(false);
+    expect(versionRes.errors.some((e) => e.includes('Model schema version mismatch'))).toBe(true);
+
+    // Divergence 4: Out-of-bounds featureIndex in a decision tree
+    const badIndexModel: RandomForestModel = {
+      ...model,
+      trees: [
+        {
+          root: {
+            isLeaf: false,
+            featureIndex: 999, // Out of bounds
+            threshold: 0.5,
+            leftChild: { isLeaf: true, probability: 0.1 },
+            rightChild: { isLeaf: true, probability: 0.9 }
+          }
+        }
+      ]
+    };
+    const badIndexRes = validateModelFeatureSchema(badIndexModel);
+    expect(badIndexRes.isValid).toBe(false);
+    expect(badIndexRes.errors.some((e) => e.includes('invalid featureIndex 999'))).toBe(true);
   });
 });

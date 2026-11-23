@@ -1,4 +1,5 @@
 import DatabaseConstructor, { type Database } from 'better-sqlite3';
+import { calculateReputationDecay } from '@upi-verifier/core';
 import {
   INIT_DB_SQL,
   type ReportRecord,
@@ -26,6 +27,37 @@ export class DatabaseClient {
   public insertReport(record: ReportRecord): { inserted: boolean; message: string } {
     const cleanVpa = record.vpa.trim().toLowerCase();
     try {
+      // Check existing report from this device
+      const existing = this.db.prepare(`
+        SELECT id, created_at FROM reports WHERE vpa = ? AND device_hash = ?
+      `).get(cleanVpa, record.device_hash) as { id: number; created_at: string } | undefined;
+
+      if (existing) {
+        // Cooldown: check if submitted within last 24 hours
+        const diffMs = Date.now() - new Date(existing.created_at).getTime();
+        const hoursAgo = diffMs / (1000 * 60 * 60);
+
+        if (hoursAgo < 24) {
+          return {
+            inserted: false,
+            message: 'A report for this UPI ID from your device has already been recorded'
+          };
+        }
+
+        // If > 24 hours have elapsed, update the existing report (retaining single unique deduplicated reporter record)
+        this.db.prepare(`
+          UPDATE reports
+          SET reason = @reason, note = @note, created_at = DATETIME('now')
+          WHERE id = @id
+        `).run({
+          id: existing.id,
+          reason: record.reason,
+          note: record.note ?? null
+        });
+
+        return { inserted: true, message: 'Report updated with latest threat details' };
+      }
+
       const stmt = this.db.prepare(`
         INSERT INTO reports (vpa, reason, note, device_hash)
         VALUES (@vpa, @reason, @note, @device_hash)
@@ -54,40 +86,48 @@ export class DatabaseClient {
   public getVpaReputation(vpa: string): VpaReputationSummary {
     const cleanVpa = vpa.trim().toLowerCase();
 
-    const countRow = this.db.prepare(`
-      SELECT COUNT(*) as cnt, MAX(created_at) as last_reported
+    // Query all reports for this VPA to compute time decay weighting and device deduplication
+    const rows = this.db.prepare(`
+      SELECT reason, note, device_hash as deviceHash, created_at as createdAt
       FROM reports
       WHERE vpa = ?
-    `).get(cleanVpa) as { cnt: number; last_reported: string | null } | undefined;
+      ORDER BY created_at DESC
+    `).all(cleanVpa) as Array<{
+      reason: string;
+      note?: string;
+      deviceHash: string;
+      createdAt: string;
+    }>;
 
-    const reportCount = countRow?.cnt ?? 0;
-    const lastReported = countRow?.last_reported ?? undefined;
-
-    let lastReportedDaysAgo: number | undefined;
-    if (lastReported) {
-      const reportedDate = new Date(lastReported);
-      const now = new Date();
-      const diffMs = now.getTime() - reportedDate.getTime();
-      lastReportedDaysAgo = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
+    if (rows.length === 0) {
+      return {
+        vpa: cleanVpa,
+        reportCount: 0,
+        uniqueReporters: 0,
+        decayedScore: 0,
+        recentReportCount: 0,
+        topCategories: [],
+        breakdownByPeriod: {
+          within7Days: 0,
+          within30Days: 0,
+          within90Days: 0,
+          olderThan90Days: 0
+        }
+      };
     }
 
-    const categoryRows = this.db.prepare(`
-      SELECT reason, COUNT(*) as freq
-      FROM reports
-      WHERE vpa = ?
-      GROUP BY reason
-      ORDER BY freq DESC
-      LIMIT 3
-    `).all(cleanVpa) as Array<{ reason: string; freq: number }>;
-
-    const topCategories = categoryRows.map((r) => r.reason);
+    const decay = calculateReputationDecay(rows);
 
     return {
       vpa: cleanVpa,
-      reportCount,
-      ...(lastReported ? { lastReported } : {}),
-      ...(lastReportedDaysAgo !== undefined ? { lastReportedDaysAgo } : {}),
-      topCategories
+      reportCount: decay.uniqueReporters,
+      uniqueReporters: decay.uniqueReporters,
+      decayedScore: decay.decayedScore,
+      recentReportCount: decay.recentReportCount,
+      ...(decay.lastReportedDate ? { lastReported: decay.lastReportedDate } : {}),
+      ...(decay.lastReportedDaysAgo !== undefined ? { lastReportedDaysAgo: decay.lastReportedDaysAgo } : {}),
+      topCategories: decay.topCategories,
+      breakdownByPeriod: decay.breakdownByPeriod
     };
   }
 

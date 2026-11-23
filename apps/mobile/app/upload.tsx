@@ -12,18 +12,22 @@ import {
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { Camera } from 'expo-camera';
-import { decodeQrFromFile } from '../lib/web-qr';
+import { decodeAllQrFromFile } from '../lib/web-qr';
 import { COLORS } from '../lib/theme';
 import { DisclaimerBanner } from '../components/DisclaimerBanner';
+import { MultipleQrModal } from '../components/MultipleQrModal';
 
 export default function UploadScreen() {
   const router = useRouter();
   const [selectedUri, setSelectedUri] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [candidateQrs, setCandidateQrs] = useState<string[]>([]);
+  const [showMultiQrModal, setShowMultiQrModal] = useState(false);
 
   const handleDecodedPayload = (payload: string) => {
     setIsProcessing(false);
+    setShowMultiQrModal(false);
     router.replace({
       pathname: '/result',
       params: { rawPayload: payload }
@@ -32,6 +36,8 @@ export default function UploadScreen() {
 
   const pickImage = async () => {
     setErrorMessage(null);
+    setCandidateQrs([]);
+    setShowMultiQrModal(false);
 
     try {
       if (Platform.OS === 'web') {
@@ -47,14 +53,19 @@ export default function UploadScreen() {
           setSelectedUri(URL.createObjectURL(file));
           setIsProcessing(true);
 
-          const result = await decodeQrFromFile(file);
-          if (result) {
-            handleDecodedPayload(result);
-          } else {
+          const results = await decodeAllQrFromFile(file);
+          if (results.length === 0) {
             setIsProcessing(false);
             setErrorMessage(
               'No readable QR code detected in this image. Please ensure good lighting and clear contrast.'
             );
+          } else if (results.length === 1) {
+            handleDecodedPayload(results[0]!);
+          } else {
+            // Multiple QR codes found: NEVER silently pick one!
+            setIsProcessing(false);
+            setCandidateQrs(results);
+            setShowMultiQrModal(true);
           }
         };
         input.click();
@@ -82,21 +93,52 @@ export default function UploadScreen() {
       setSelectedUri(asset.uri);
       setIsProcessing(true);
 
-      // Decode with expo-camera barcode scanner
+      const discovered = new Set<string>();
+
+      // 1. Try with expo-camera native barcode scanner
       try {
         const barcodes = await Camera.scanFromURLAsync(asset.uri, ['qr']);
-        if (barcodes && barcodes.length > 0 && barcodes[0]?.data) {
-          handleDecodedPayload(barcodes[0].data);
-          return;
+        if (barcodes && barcodes.length > 0) {
+          for (const b of barcodes) {
+            if (b?.data && b.data.trim()) {
+              discovered.add(b.data.trim());
+            }
+          }
         }
       } catch (scanErr) {
-        console.warn('Camera.scanFromURLAsync failed, falling back:', scanErr);
+        console.warn('Camera.scanFromURLAsync failed, attempting multi-pass fallback:', scanErr);
       }
 
-      setIsProcessing(false);
-      setErrorMessage(
-        'Could not decode any payment QR code from the selected image. Please try another image or scan directly using camera.'
-      );
+      // 2. Also run multi-pass image decoder if <= 1 found to discover all distinct counter standees
+      if (discovered.size <= 1) {
+        try {
+          const response = await fetch(asset.uri);
+          const blob = await response.blob();
+          const fallbackResults = await decodeAllQrFromFile(blob);
+          for (const r of fallbackResults) {
+            if (r && r.trim()) {
+              discovered.add(r.trim());
+            }
+          }
+        } catch (fallbackErr) {
+          console.warn('Fallback multi-pass decode failed:', fallbackErr);
+        }
+      }
+
+      const allCodes = Array.from(discovered);
+      if (allCodes.length === 0) {
+        setIsProcessing(false);
+        setErrorMessage(
+          'Could not decode any payment QR code from the selected image. Please try another image or scan directly using camera.'
+        );
+      } else if (allCodes.length === 1) {
+        handleDecodedPayload(allCodes[0]!);
+      } else {
+        // Multiple QR codes found: NEVER silently pick one!
+        setIsProcessing(false);
+        setCandidateQrs(allCodes);
+        setShowMultiQrModal(true);
+      }
     } catch (err: unknown) {
       setIsProcessing(false);
       const msg = err instanceof Error ? err.message : 'Unknown error';
@@ -133,8 +175,18 @@ export default function UploadScreen() {
 
         {errorMessage ? (
           <View style={styles.errorBox}>
-            <Text style={styles.errorIcon}>⚠️</Text>
+            <View style={styles.errorHeaderRow}>
+              <Text style={styles.errorIcon}>⚠️</Text>
+              <Text style={styles.errorTitle}>No Readable QR Code Found</Text>
+            </View>
             <Text style={styles.errorText}>{errorMessage}</Text>
+            <View style={styles.tipsBox}>
+              <Text style={styles.tipsTitle}>💡 Helpful Tips for Clear Capture:</Text>
+              <Text style={styles.tipItem}>• Ensure all 4 corner finder patterns of the QR code are inside the frame.</Text>
+              <Text style={styles.tipItem}>• Avoid overhead glare, specular reflections, or deep shadows on laminated stands.</Text>
+              <Text style={styles.tipItem}>• Hold device steady or clean camera lens to eliminate motion blur.</Text>
+              <Text style={styles.tipItem}>• For small stickers, crop closer or position camera 15-20 cm away.</Text>
+            </View>
           </View>
         ) : null}
 
@@ -146,6 +198,20 @@ export default function UploadScreen() {
       </View>
 
       <DisclaimerBanner />
+
+      {/* Multiple QR Codes Modal Selector */}
+      <MultipleQrModal
+        visible={showMultiQrModal}
+        qrCodes={candidateQrs}
+        onSelect={(payload) => {
+          setShowMultiQrModal(false);
+          handleDecodedPayload(payload);
+        }}
+        onCancel={() => {
+          setShowMultiQrModal(false);
+          setCandidateQrs([]);
+        }}
+      />
     </ScrollView>
   );
 }
@@ -232,25 +298,55 @@ const styles = StyleSheet.create({
     flex: 1
   },
   errorBox: {
-    flexDirection: 'row',
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
     borderColor: COLORS.highRisk,
     borderWidth: 1,
     borderRadius: 12,
-    padding: 12,
-    marginTop: 12,
-    alignItems: 'flex-start'
+    padding: 14,
+    marginTop: 14
+  },
+  errorHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6
   },
   errorIcon: {
-    fontSize: 16,
-    marginRight: 8,
-    marginTop: 1
+    fontSize: 18,
+    marginRight: 8
+  },
+  errorTitle: {
+    color: '#EF4444',
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: 0.3
   },
   errorText: {
-    color: '#FCA5A5',
+    color: '#FECACA',
     fontSize: 13,
-    flex: 1,
-    lineHeight: 18
+    lineHeight: 18,
+    marginBottom: 10
+  },
+  tipsBox: {
+    backgroundColor: 'rgba(15, 23, 42, 0.6)',
+    borderColor: 'rgba(239, 68, 68, 0.3)',
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 10,
+    marginTop: 4
+  },
+  tipsTitle: {
+    color: '#F87171',
+    fontSize: 11,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 6
+  },
+  tipItem: {
+    color: '#E2E8F0',
+    fontSize: 11,
+    lineHeight: 16,
+    marginBottom: 3
   },
   retryButton: {
     backgroundColor: COLORS.bgSecondary,

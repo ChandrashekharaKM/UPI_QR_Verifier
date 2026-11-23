@@ -6,20 +6,27 @@ import type { RuleContext, RuleResult } from '../types/rules.js';
  */
 export function ruleCommunityHighReports(ctx: RuleContext): RuleResult {
   const count = ctx.community?.reportCount ?? 0;
-  const isTriggered = count >= 2;
+  const decayed = ctx.community?.decayedScore;
+  const effective = decayed !== undefined ? decayed : count;
+  const isTriggered = effective >= 1.5 || count >= 2;
+
+  const severity = effective >= 4 || count >= 5 ? 'critical' : 'high';
+  const weight = effective >= 4 || count >= 5 ? 85 : 60;
 
   return {
     id: 'RULE_COMMUNITY_HIGH_REPORTS',
     triggered: isTriggered,
-    severity: count >= 5 ? 'critical' : 'high',
-    weight: count >= 5 ? 85 : 60,
+    severity,
+    weight,
     title: 'Multiple Scam Reports on Record',
     message: isTriggered
-      ? `This UPI recipient has been flagged by ${count} other users as a suspected fraudulent or scam account.`
+      ? `This UPI recipient has been flagged by ${count} user reports (decayed threat weight: ${effective.toFixed(2)}) as a suspected fraudulent or scam account.`
       : 'No widespread community reports on file.',
     evidence: isTriggered
       ? [
           { key: 'reportCount', value: count },
+          ...(ctx.community?.uniqueReporters !== undefined ? [{ key: 'uniqueReporters', value: ctx.community.uniqueReporters }] : []),
+          ...(decayed !== undefined ? [{ key: 'decayedScore', value: decayed }] : []),
           { key: 'categories', value: (ctx.community?.topCategories ?? []).join(', ') }
         ]
       : undefined

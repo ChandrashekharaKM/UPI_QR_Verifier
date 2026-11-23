@@ -28,12 +28,25 @@ export const reputationRoutes: FastifyPluginAsync<ReputationRouteOptions> = asyn
         response: {
           200: {
             type: 'object',
+            additionalProperties: true,
             properties: {
               vpa: { type: 'string' },
               reportCount: { type: 'number' },
+              uniqueReporters: { type: 'number' },
+              decayedScore: { type: 'number' },
+              recentReportCount: { type: 'number' },
               lastReported: { type: 'string' },
               lastReportedDaysAgo: { type: 'number' },
-              topCategories: { type: 'array', items: { type: 'string' } }
+              topCategories: { type: 'array', items: { type: 'string' } },
+              breakdownByPeriod: {
+                type: 'object',
+                properties: {
+                  within7Days: { type: 'number' },
+                  within30Days: { type: 'number' },
+                  within90Days: { type: 'number' },
+                  olderThan90Days: { type: 'number' }
+                }
+              }
             }
           },
           400: {

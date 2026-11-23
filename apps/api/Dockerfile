@@ -21,8 +21,9 @@ RUN pnpm approve-builds --all
 COPY packages/core ./packages/core
 COPY apps/api ./apps/api
 
-# Build core library
+# Build core library and API
 RUN pnpm --filter @upi-verifier/core build
+RUN pnpm --filter @upi-verifier/api build
 
 # ----------------------------------------------------
 # Production Runtime Stage

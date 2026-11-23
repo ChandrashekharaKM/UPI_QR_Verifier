@@ -1,4 +1,8 @@
-import type { RandomForestModel, DecisionTreeModel } from '@upi-verifier/core';
+import {
+  FEATURE_SCHEMA_VERSION,
+  type RandomForestModel,
+  type DecisionTreeModel
+} from '@upi-verifier/core';
 import { trainDecisionTree, type DataPoint, type TreeHyperparameters } from './cart.js';
 
 export interface ForestHyperparameters {
@@ -69,7 +73,7 @@ export function trainRandomForest(
   }
 
   return {
-    version: '1.0.0',
+    version: FEATURE_SCHEMA_VERSION,
     nEstimators: hyperparams.nEstimators,
     featureNames,
     trees,

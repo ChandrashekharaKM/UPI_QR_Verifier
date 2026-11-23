@@ -9,14 +9,19 @@ import { MAX_REASONABLE_PAYLOAD_LENGTH } from '../parser/payload-parser.js';
 export function ruleDuplicateParameters(ctx: RuleContext): RuleResult {
   const isTriggered = ctx.parsed.hasDuplicateParams;
   const duplicateKeys =
-    ctx.parsed.fields.kind === 'upi' ? ctx.parsed.fields.upi.duplicateKeys : [];
+    ctx.parsed.fields.kind === 'upi' || ctx.parsed.fields.kind === 'emv'
+      ? ctx.parsed.fields.upi.duplicateKeys
+      : [];
+  const isCritical = duplicateKeys.some((k) => k === 'pa' || k === 'am');
 
   return {
     id: 'RULE_DUPLICATE_PARAMETERS',
     triggered: isTriggered,
-    severity: 'high',
-    weight: 65,
-    title: 'Duplicate URI Parameters (Tampering Indicator)',
+    severity: isCritical ? 'critical' : 'high',
+    weight: isCritical ? 85 : 65,
+    title: isCritical
+      ? 'Critical Parameter Pollution (Payee/Amount Overwrite)'
+      : 'Duplicate URI Parameters (Tampering Indicator)',
     message: isTriggered
       ? `Repeated parameter keys detected (${duplicateKeys.join(', ')}). Parameter pollution attacks trick payment apps into charging an attacker instead of the shown recipient.`
       : 'No duplicate parameters found.',
@@ -31,7 +36,10 @@ export function ruleDuplicateParameters(ctx: RuleContext): RuleResult {
  * Why: Injection of custom query parameters may exploit vulnerabilities or app-specific behavior in banking apps.
  */
 export function ruleUnknownParameters(ctx: RuleContext): RuleResult {
-  if (ctx.parsed.kind !== 'upi' || ctx.parsed.fields.kind !== 'upi') {
+  if (
+    (ctx.parsed.kind !== 'upi' && ctx.parsed.kind !== 'emv') ||
+    (ctx.parsed.fields.kind !== 'upi' && ctx.parsed.fields.kind !== 'emv')
+  ) {
     return {
       id: 'RULE_UNKNOWN_PARAMETERS',
       triggered: false,
@@ -42,7 +50,21 @@ export function ruleUnknownParameters(ctx: RuleContext): RuleResult {
     };
   }
 
-  const extraKeys = Object.keys(ctx.parsed.fields.upi.extraParams);
+  const BHARAT_QR_STANDARD_KEYS = new Set([
+    'format',
+    'pointOfInitiation',
+    'city',
+    'postalCode',
+    'source',
+    'tipIndicator',
+    'tipValueFixed',
+    'tipValuePercentage',
+    'originalScheme',
+    'action'
+  ]);
+  const extraKeys = Object.keys(ctx.parsed.fields.upi.extraParams).filter(
+    (k) => !BHARAT_QR_STANDARD_KEYS.has(k)
+  );
   const isTriggered = extraKeys.length > 0;
 
   return {
@@ -87,7 +109,10 @@ export function ruleOversizedPayload(ctx: RuleContext): RuleResult {
  * Why: UPI exclusively operates in Indian Rupees (INR). Specifying other currencies indicates a foreign or spoofed payment request.
  */
 export function ruleInvalidCurrency(ctx: RuleContext): RuleResult {
-  if (ctx.parsed.kind !== 'upi' || ctx.parsed.fields.kind !== 'upi') {
+  if (
+    (ctx.parsed.kind !== 'upi' && ctx.parsed.kind !== 'emv') ||
+    (ctx.parsed.fields.kind !== 'upi' && ctx.parsed.fields.kind !== 'emv')
+  ) {
     return {
       id: 'RULE_INVALID_CURRENCY',
       triggered: false,
@@ -99,7 +124,8 @@ export function ruleInvalidCurrency(ctx: RuleContext): RuleResult {
   }
 
   const currency = (ctx.parsed.fields.upi.cu ?? 'INR').toUpperCase().trim();
-  const isInvalid = currency !== 'INR';
+  // ISO 4217 numeric code 356 corresponds to Indian Rupee (INR)
+  const isInvalid = currency !== 'INR' && currency !== '356';
 
   return {
     id: 'RULE_INVALID_CURRENCY',

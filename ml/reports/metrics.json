@@ -1,59 +1,135 @@
 {
-  "trainedAt": "2026-10-08T14:03:08.678Z",
-  "corpusSize": 1010,
-  "splits": {
-    "train": 706,
-    "validation": 150,
-    "test": 154
+  "trainedAt": "2026-11-22T15:16:18.386Z",
+  "evaluationStrategy": "source_based_held_out_split",
+  "trainingSource": "synthetic",
+  "testingSource": "real_world_samples",
+  "corpusSize": {
+    "syntheticTrain": 1200,
+    "realHeldOutTest": 635,
+    "total": 1835
   },
-  "heldOutTestMetrics": {
-    "total": 154,
-    "truePositives": 77,
-    "trueNegatives": 77,
-    "falsePositives": 0,
-    "falseNegatives": 0,
-    "accuracy": 1,
-    "precision": 1,
-    "recall": 1,
-    "f1Score": 1,
-    "falsePositiveRate": 0,
+  "heldOutRealTestMetrics": {
+    "total": 635,
+    "truePositives": 236,
+    "trueNegatives": 387,
+    "falsePositives": 3,
+    "falseNegatives": 9,
+    "accuracy": 0.9811,
+    "precision": 0.9874,
+    "recall": 0.9633,
+    "f1Score": 0.9752,
+    "falsePositiveRate": 0.0077,
     "confusionMatrix": [
       [
-        77,
-        0
+        387,
+        3
       ],
       [
-        0,
-        77
+        9,
+        236
       ]
-    ]
+    ],
+    "auc": 0.9937,
+    "ece": 0.1165
+  },
+  "legitimateMerchantMetrics": {
+    "total": 285,
+    "trueNegatives": 284,
+    "falsePositives": 1,
+    "falsePositiveRate": 0.0035
   },
   "perSourceMetrics": {
-    "synthetic": {
-      "total": 153,
-      "truePositives": 76,
-      "trueNegatives": 77,
-      "falsePositives": 0,
+    "maintainer_consented_scan": {
+      "total": 390,
+      "truePositives": 0,
+      "trueNegatives": 387,
+      "falsePositives": 3,
       "falseNegatives": 0,
-      "accuracy": 1,
-      "precision": 1,
-      "recall": 1,
-      "f1Score": 1,
-      "falsePositiveRate": 0,
+      "accuracy": 0.9923,
+      "precision": 0,
+      "recall": 0,
+      "f1Score": 0,
+      "falsePositiveRate": 0.0077,
       "confusionMatrix": [
         [
-          77,
-          0
+          387,
+          3
         ],
         [
           0,
-          76
+          0
         ]
       ]
     },
-    "real_phish": {
-      "total": 1,
-      "truePositives": 1,
+    "npci_public_advisory": {
+      "total": 55,
+      "truePositives": 54,
+      "trueNegatives": 0,
+      "falsePositives": 0,
+      "falseNegatives": 1,
+      "accuracy": 0.9818,
+      "precision": 1,
+      "recall": 0.9818,
+      "f1Score": 0.9908,
+      "falsePositiveRate": 0,
+      "confusionMatrix": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          54
+        ]
+      ]
+    },
+    "rbi_public_advisory": {
+      "total": 20,
+      "truePositives": 19,
+      "trueNegatives": 0,
+      "falsePositives": 0,
+      "falseNegatives": 1,
+      "accuracy": 0.95,
+      "precision": 1,
+      "recall": 0.95,
+      "f1Score": 0.9744,
+      "falsePositiveRate": 0,
+      "confusionMatrix": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          19
+        ]
+      ]
+    },
+    "i4c_cybercrime_gov": {
+      "total": 45,
+      "truePositives": 39,
+      "trueNegatives": 0,
+      "falsePositives": 0,
+      "falseNegatives": 6,
+      "accuracy": 0.8667,
+      "precision": 1,
+      "recall": 0.8667,
+      "f1Score": 0.9286,
+      "falsePositiveRate": 0,
+      "confusionMatrix": [
+        [
+          0,
+          0
+        ],
+        [
+          6,
+          39
+        ]
+      ]
+    },
+    "bank_fraud_alert": {
+      "total": 25,
+      "truePositives": 25,
       "trueNegatives": 0,
       "falsePositives": 0,
       "falseNegatives": 0,
@@ -69,165 +145,260 @@
         ],
         [
           0,
-          1
+          25
+        ]
+      ]
+    },
+    "documented_scam_pattern": {
+      "total": 100,
+      "truePositives": 99,
+      "trueNegatives": 0,
+      "falsePositives": 0,
+      "falseNegatives": 1,
+      "accuracy": 0.99,
+      "precision": 1,
+      "recall": 0.99,
+      "f1Score": 0.995,
+      "falsePositiveRate": 0,
+      "confusionMatrix": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          99
         ]
       ]
     }
   },
-  "validationMetrics": {
-    "total": 150,
-    "truePositives": 75,
-    "trueNegatives": 75,
-    "falsePositives": 0,
-    "falseNegatives": 0,
-    "accuracy": 1,
-    "precision": 1,
-    "recall": 1,
-    "f1Score": 1,
-    "falsePositiveRate": 0,
-    "confusionMatrix": [
-      [
-        75,
-        0
-      ],
-      [
-        0,
-        75
-      ]
-    ]
+  "calibrationCurve": {
+    "bins": [
+      {
+        "binIndex": 1,
+        "binMin": 0,
+        "binMax": 0.1,
+        "count": 213,
+        "meanConfidence": 0.0294,
+        "empiricalAccuracy": 0,
+        "calibrationGap": 0.0294
+      },
+      {
+        "binIndex": 2,
+        "binMin": 0.1,
+        "binMax": 0.2,
+        "count": 106,
+        "meanConfidence": 0.1523,
+        "empiricalAccuracy": 0.0189,
+        "calibrationGap": 0.1335
+      },
+      {
+        "binIndex": 3,
+        "binMin": 0.2,
+        "binMax": 0.3,
+        "count": 16,
+        "meanConfidence": 0.2499,
+        "empiricalAccuracy": 0.1875,
+        "calibrationGap": 0.0624
+      },
+      {
+        "binIndex": 4,
+        "binMin": 0.3,
+        "binMax": 0.4,
+        "count": 53,
+        "meanConfidence": 0.3542,
+        "empiricalAccuracy": 0.0377,
+        "calibrationGap": 0.3165
+      },
+      {
+        "binIndex": 5,
+        "binMin": 0.4,
+        "binMax": 0.5,
+        "count": 8,
+        "meanConfidence": 0.4315,
+        "empiricalAccuracy": 0.25,
+        "calibrationGap": 0.1815
+      },
+      {
+        "binIndex": 6,
+        "binMin": 0.5,
+        "binMax": 0.6,
+        "count": 13,
+        "meanConfidence": 0.5187,
+        "empiricalAccuracy": 0.8462,
+        "calibrationGap": 0.3275
+      },
+      {
+        "binIndex": 7,
+        "binMin": 0.6,
+        "binMax": 0.7,
+        "count": 15,
+        "meanConfidence": 0.6414,
+        "empiricalAccuracy": 1,
+        "calibrationGap": 0.3586
+      },
+      {
+        "binIndex": 8,
+        "binMin": 0.7,
+        "binMax": 0.8,
+        "count": 49,
+        "meanConfidence": 0.744,
+        "empiricalAccuracy": 1,
+        "calibrationGap": 0.256
+      },
+      {
+        "binIndex": 9,
+        "binMin": 0.8,
+        "binMax": 0.9,
+        "count": 66,
+        "meanConfidence": 0.8505,
+        "empiricalAccuracy": 0.9848,
+        "calibrationGap": 0.1343
+      },
+      {
+        "binIndex": 10,
+        "binMin": 0.9,
+        "binMax": 1,
+        "count": 96,
+        "meanConfidence": 0.9656,
+        "empiricalAccuracy": 1,
+        "calibrationGap": 0.0344
+      }
+    ],
+    "ece": 0.1165
   },
-  "ablationComparison": {
+  "ablationComparisonOnRealData": {
     "rulesOnly": {
-      "total": 154,
-      "truePositives": 75,
-      "trueNegatives": 57,
-      "falsePositives": 20,
-      "falseNegatives": 2,
-      "accuracy": 0.8571,
-      "precision": 0.7895,
-      "recall": 0.974,
-      "f1Score": 0.8721,
-      "falsePositiveRate": 0.2597,
+      "total": 635,
+      "truePositives": 244,
+      "trueNegatives": 243,
+      "falsePositives": 147,
+      "falseNegatives": 1,
+      "accuracy": 0.7669,
+      "precision": 0.624,
+      "recall": 0.9959,
+      "f1Score": 0.7673,
+      "falsePositiveRate": 0.3769,
       "confusionMatrix": [
         [
-          57,
-          20
+          243,
+          147
         ],
         [
-          2,
-          75
+          1,
+          244
         ]
       ]
     },
     "mlOnly": {
-      "total": 154,
-      "truePositives": 77,
-      "trueNegatives": 77,
-      "falsePositives": 0,
-      "falseNegatives": 0,
-      "accuracy": 1,
-      "precision": 1,
-      "recall": 1,
-      "f1Score": 1,
-      "falsePositiveRate": 0,
+      "total": 635,
+      "truePositives": 236,
+      "trueNegatives": 387,
+      "falsePositives": 3,
+      "falseNegatives": 9,
+      "accuracy": 0.9811,
+      "precision": 0.9874,
+      "recall": 0.9633,
+      "f1Score": 0.9752,
+      "falsePositiveRate": 0.0077,
       "confusionMatrix": [
         [
-          77,
-          0
+          387,
+          3
         ],
         [
-          0,
-          77
+          9,
+          236
         ]
       ]
     },
     "combined": {
-      "total": 154,
-      "truePositives": 75,
-      "trueNegatives": 77,
-      "falsePositives": 0,
-      "falseNegatives": 2,
-      "accuracy": 0.987,
-      "precision": 1,
-      "recall": 0.974,
-      "f1Score": 0.9868,
-      "falsePositiveRate": 0,
+      "total": 635,
+      "truePositives": 242,
+      "trueNegatives": 360,
+      "falsePositives": 30,
+      "falseNegatives": 3,
+      "accuracy": 0.948,
+      "precision": 0.8897,
+      "recall": 0.9878,
+      "f1Score": 0.9362,
+      "falsePositiveRate": 0.0769,
       "confusionMatrix": [
         [
-          77,
-          0
+          360,
+          30
         ],
         [
-          2,
-          75
+          3,
+          242
         ]
       ]
     }
   },
   "topFeatures": [
     {
-      "featureIndex": 17,
-      "featureName": "name_vpa_similarity",
-      "importanceScore": 0.129,
-      "splitCount": 8
-    },
-    {
-      "featureIndex": 10,
-      "featureName": "vpa_is_known_psp",
-      "importanceScore": 0.0968,
-      "splitCount": 6
+      "featureIndex": 27,
+      "featureName": "rule_risk_score_norm",
+      "importanceScore": 0.1899,
+      "splitCount": 15
     },
     {
       "featureIndex": 12,
       "featureName": "vpa_entropy_norm",
-      "importanceScore": 0.0968,
+      "importanceScore": 0.1013,
+      "splitCount": 8
+    },
+    {
+      "featureIndex": 17,
+      "featureName": "name_vpa_similarity",
+      "importanceScore": 0.1013,
+      "splitCount": 8
+    },
+    {
+      "featureIndex": 13,
+      "featureName": "vpa_digit_ratio",
+      "importanceScore": 0.0759,
       "splitCount": 6
     },
     {
-      "featureIndex": 20,
-      "featureName": "amount_normalized",
-      "importanceScore": 0.0968,
-      "splitCount": 6
-    },
-    {
-      "featureIndex": 27,
-      "featureName": "rule_risk_score_norm",
-      "importanceScore": 0.0968,
+      "featureIndex": 14,
+      "featureName": "vpa_has_impersonation",
+      "importanceScore": 0.0759,
       "splitCount": 6
     },
     {
       "featureIndex": 24,
       "featureName": "has_merchant_code",
-      "importanceScore": 0.0806,
-      "splitCount": 5
-    },
-    {
-      "featureIndex": 11,
-      "featureName": "vpa_is_phone_number",
-      "importanceScore": 0.0645,
-      "splitCount": 4
-    },
-    {
-      "featureIndex": 13,
-      "featureName": "vpa_digit_ratio",
-      "importanceScore": 0.0645,
-      "splitCount": 4
+      "importanceScore": 0.0759,
+      "splitCount": 6
     },
     {
       "featureIndex": 7,
       "featureName": "payload_length_norm",
-      "importanceScore": 0.0484,
-      "splitCount": 3
+      "importanceScore": 0.0633,
+      "splitCount": 5
     },
     {
-      "featureIndex": 14,
-      "featureName": "vpa_has_impersonation",
-      "importanceScore": 0.0484,
-      "splitCount": 3
+      "featureIndex": 20,
+      "featureName": "amount_normalized",
+      "importanceScore": 0.0633,
+      "splitCount": 5
+    },
+    {
+      "featureIndex": 19,
+      "featureName": "has_amount",
+      "importanceScore": 0.0506,
+      "splitCount": 4
+    },
+    {
+      "featureIndex": 25,
+      "featureName": "missing_mc_for_business",
+      "importanceScore": 0.0506,
+      "splitCount": 4
     }
   ],
   "hyperparameters": {
-    "nEstimators": 12,
+    "nEstimators": 15,
     "maxDepth": 5,
     "minSamplesSplit": 5,
     "minSamplesLeaf": 2,

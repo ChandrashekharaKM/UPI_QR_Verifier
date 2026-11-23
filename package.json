@@ -4,16 +4,25 @@
   "private": true,
   "description": "Payment QR code Alert System - UPI QR Verifier",
   "scripts": {
-    "test": "pnpm --filter @upi-verifier/core test",
+    "test": "pnpm --filter @upi-verifier/core test && pnpm --filter @upi-verifier/api test && pnpm --filter @upi-verifier/ml test && pnpm --filter @upi-verifier/mobile test",
     "typecheck": "pnpm -r typecheck",
     "lint": "eslint .",
-    "build:core": "pnpm --filter @upi-verifier/core build"
+    "build:core": "pnpm --filter @upi-verifier/core build",
+    "train:ml": "pnpm --filter @upi-verifier/ml train",
+    "check-freshness": "pnpm --filter @upi-verifier/core check:freshness",
+    "generate:real-world-fixtures": "tsx docs/real-world-fixtures/generate-real-world-fixtures.ts"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/node": "^22.13.1",
+    "@types/pngjs": "^6.0.5",
     "@types/qrcode": "^1.5.6",
+    "eslint": "^10.15.0",
+    "jsqr": "^1.4.0",
+    "pngjs": "^7.0.0",
     "qrcode": "^1.5.4",
     "tsx": "^4.23.15",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.73.0"
   }
 }

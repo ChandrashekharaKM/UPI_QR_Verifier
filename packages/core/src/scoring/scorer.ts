@@ -9,6 +9,7 @@ import type { FeatureVector } from '../types/features.js';
 import type { RandomForestModel } from '../types/model.js';
 import { DEFAULT_SCORING_CONFIG, type ScoringConfig } from './config.js';
 import { predictRandomForest } from '../ml/inference.js';
+import { isUtilityNonPaymentScheme } from '../parser/payload-parser.js';
 
 export interface ScoreCalculationInput {
   readonly ctx: RuleContext;
@@ -27,14 +28,46 @@ export function calculateVerificationScore(input: ScoreCalculationInput): Verifi
   const { ctx, triggeredRules, ruleRiskScore, features, model, isOffline = false } = input;
   const config: ScoringConfig = { ...DEFAULT_SCORING_CONFIG, ...input.config };
 
+  // Special Handling for Benign Non-Payment Utility QR Codes (Wi-Fi, mailto, tel, etc.):
+  // These do not initiate UPI payment transactions and must NOT be flagged as payment scams.
+  if (isUtilityNonPaymentScheme(ctx.parsed)) {
+    const scheme =
+      (ctx.parsed.fields.kind === 'other' && ctx.parsed.fields.other.detectedScheme) ||
+      'utility';
+    return {
+      score: 0,
+      category: 'SAFE',
+      reasons: [],
+      confidenceNote: `Not a payment QR code (${scheme}). This is a utility code (such as Wi-Fi, email, or telephone) that does not initiate a payment transaction and is not flagged as a scam.`,
+      disclaimer: config.defaultDisclaimer,
+      isSafeWithCaveat: false,
+      isNonPaymentQr: true,
+      scoreBreakdown: {
+        ruleScore: 0,
+        mlProbability: 0,
+        mlScore: 0,
+        mlWeight: config.mlWeight,
+        communityPenalty: 0,
+        rawCombinedScore: 0,
+        finalScore: 0
+      },
+      features,
+      modelVersion: model.version,
+      evaluatedAt: new Date().toISOString(),
+      isOfflineEvaluation: isOffline,
+      parsed: ctx.parsed
+    };
+  }
+
   // 1. Run ML inference
   const mlProbability = predictRandomForest(model, features);
   const mlScore = Math.round(mlProbability * 100);
 
-  // 2. Additional community penalty if present
+  // 2. Additional community penalty with decay weighting if present
   let communityPenalty = 0;
   if (ctx.community && ctx.community.reportCount > 0) {
-    communityPenalty = Math.min(25, ctx.community.reportCount * 8);
+    const effectiveWeight = ctx.community.decayedScore ?? ctx.community.reportCount;
+    communityPenalty = Math.min(25, Math.round(effectiveWeight * 8));
   }
 
   // 3. Weighted blend
@@ -43,9 +76,21 @@ export function calculateVerificationScore(input: ScoreCalculationInput): Verifi
     mlScore * config.mlWeight +
     communityPenalty;
 
-  const finalScore = Math.min(100, Math.max(0, Math.round(rawCombined)));
+  let finalScore = Math.min(100, Math.max(0, Math.round(rawCombined)));
 
-  // 4. Categorization: 0-30 Safe, 31-70 Suspicious, 71-100 High Risk
+  // 4. Critical Rule Override:
+  // If the deterministic rule engine triggers any rule with severity 'critical',
+  // the rule engine overrides the statistical ML model to prevent score dilution.
+  // The result is strictly guaranteed to be at minimum HIGH_RISK (score >= 75).
+  const hasCriticalRule = triggeredRules.some((r) => r.severity === 'critical');
+  let isCriticalRuleOverride = false;
+
+  if (hasCriticalRule && finalScore < 75) {
+    finalScore = Math.max(75, ruleRiskScore);
+    isCriticalRuleOverride = true;
+  }
+
+  // 5. Categorization: 0-30 Safe, 31-70 Suspicious, 71-100 High Risk
   let category: RiskCategory;
   if (finalScore <= config.safeThresholdMax) {
     category = 'SAFE';
@@ -76,19 +121,18 @@ export function calculateVerificationScore(input: ScoreCalculationInput): Verifi
     .sort((a, b) => b.impact - a.impact);
 
   // 6. Confidence Note
-  // If evidence is insufficient (e.g. unknown VPA, no history, no merchant info), add explicit "Unverified" note.
-  // Never show a bare "Safe": the Safe message must be "No major risk indicators found; verify the receiver before paying."
+  // If evidence is insufficient or no registered-name check ran, explicitly state unverified recipient identity.
   let confidenceNote = '';
-  const isUpi = ctx.parsed.kind === 'upi';
-  const hasMerchant = isUpi && ctx.parsed.fields.kind === 'upi' && Boolean(ctx.parsed.fields.upi.mc);
-  const hasReports = Boolean(ctx.community && ctx.community.reportCount > 0);
   const hasUnknownPsp = triggeredRules.some((r) => r.id === 'RULE_UNKNOWN_PSP');
+  const hasRegisteredNameCheck = Boolean(
+    ctx.pspLookup && ctx.pspLookup.isValid && ctx.pspLookup.registeredName
+  );
 
   if (category === 'SAFE') {
-    if (!hasMerchant && !hasReports) {
-      confidenceNote = 'Unverified recipient: No previous history or merchant records found. No major risk indicators found; verify the receiver before paying.';
+    if (!hasRegisteredNameCheck) {
+      confidenceNote = 'No major risk indicators found; recipient identity NOT independently verified';
     } else {
-      confidenceNote = 'No major risk indicators found; verify the receiver before paying.';
+      confidenceNote = `No major risk indicators found; bank-registered recipient identity verified as "${ctx.pspLookup!.registeredName}".`;
     }
   } else if (category === 'SUSPICIOUS') {
     if (hasUnknownPsp) {
@@ -107,7 +151,8 @@ export function calculateVerificationScore(input: ScoreCalculationInput): Verifi
     mlWeight: config.mlWeight,
     communityPenalty,
     rawCombinedScore: Math.round(rawCombined * 10) / 10,
-    finalScore
+    finalScore,
+    ...(isCriticalRuleOverride ? { isCriticalRuleOverride: true } : {})
   };
 
   return {

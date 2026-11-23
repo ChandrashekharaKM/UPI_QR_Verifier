@@ -1,11 +1,13 @@
 import type { RuleContext, RuleFunction, RuleResult } from '../types/rules.js';
 import {
   ruleNonUpiScheme,
+  ruleCollectOrMandate,
   ruleHttpNotHttps,
   ruleIpAddressUrl,
   ruleShortenedUrl,
   ruleSuspiciousTld,
-  rulePunycodeDomain
+  rulePunycodeDomain,
+  ruleThreatIntelMalicious
 } from './rules-protocol.js';
 import {
   ruleUnknownPsp,
@@ -16,7 +18,9 @@ import {
 import {
   ruleMissingPayeeName,
   ruleNameVpaMismatch,
-  ruleUrgencyKeywords
+  ruleUrgencyKeywords,
+  ruleRegisteredNameMismatch,
+  ruleBrandImpersonation
 } from './rules-payee.js';
 import {
   ruleHighAmount,
@@ -31,6 +35,12 @@ import {
   ruleInvalidCurrency
 } from './rules-payload.js';
 import {
+  ruleEmvBadCrc
+} from './rules-emv.js';
+import {
+  ruleHiddenUnicode
+} from './rules-unicode.js';
+import {
   ruleCommunityHighReports,
   ruleCommunityRecentReports
 } from './rules-community.js';
@@ -38,11 +48,17 @@ import {
 export const ALL_RULES: readonly RuleFunction[] = [
   // Protocol & URL
   ruleNonUpiScheme,
+  ruleCollectOrMandate,
   ruleHttpNotHttps,
   ruleIpAddressUrl,
   ruleShortenedUrl,
   ruleSuspiciousTld,
   rulePunycodeDomain,
+  ruleThreatIntelMalicious,
+  // EMVCo & BharatQR
+  ruleEmvBadCrc,
+  // Evasion & Obfuscation
+  ruleHiddenUnicode,
   // VPA & PSP
   ruleUnknownPsp,
   ruleVpaHighEntropy,
@@ -52,6 +68,8 @@ export const ALL_RULES: readonly RuleFunction[] = [
   ruleMissingPayeeName,
   ruleNameVpaMismatch,
   ruleUrgencyKeywords,
+  ruleRegisteredNameMismatch,
+  ruleBrandImpersonation,
   // Transaction
   ruleHighAmount,
   ruleRoundBaitAmount,

@@ -30,7 +30,7 @@ describe('Sample QR Image Fixtures End-to-End Validation', () => {
 
       if (item.expectedCategory === 'SAFE') {
         expect(result.score).toBeLessThanOrEqual(30);
-        expect(result.confidenceNote).toContain('No major risk indicators found; verify the receiver before paying.');
+        expect(result.confidenceNote).toContain('No major risk indicators found; recipient identity NOT independently verified');
       } else if (item.expectedCategory === 'SUSPICIOUS') {
         expect(result.score).toBeGreaterThanOrEqual(31);
         expect(result.score).toBeLessThanOrEqual(70);

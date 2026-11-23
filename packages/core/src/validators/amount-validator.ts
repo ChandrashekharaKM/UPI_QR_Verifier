@@ -18,8 +18,10 @@ export function validateAmountAndCurrency(
   amountStr?: string,
   currencyStr?: string
 ): AmountValidationResult {
-  const currencyCode = (currencyStr ?? 'INR').trim().toUpperCase();
-  const isCurrencyValid = currencyCode === 'INR';
+  const rawCurrency = (currencyStr ?? 'INR').trim().toUpperCase();
+  // ISO 4217 numeric code 356 corresponds to Indian Rupee (INR) used in EMVCo/BharatQR
+  const isCurrencyValid = rawCurrency === 'INR' || rawCurrency === '356';
+  const currencyCode = rawCurrency === '356' ? 'INR' : rawCurrency;
 
   if (!amountStr || amountStr.trim().length === 0) {
     return {

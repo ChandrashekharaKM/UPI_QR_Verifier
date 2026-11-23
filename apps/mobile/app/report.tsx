@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   ActivityIndicator
 } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { COLORS } from '../lib/theme';
 import { submitScamReport } from '../lib/api-client';
 
@@ -21,7 +21,6 @@ const REASON_OPTIONS = [
 ] as const;
 
 export default function ReportScreen() {
-  const router = useRouter();
   const params = useLocalSearchParams<{ vpa?: string }>();
 
   const [vpa, setVpa] = useState(params.vpa ?? '');

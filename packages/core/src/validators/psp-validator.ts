@@ -1,5 +1,6 @@
 import pspAllowlistData from './psp-allowlist.json' with { type: 'json' };
 import { analyzeStringComposition } from './entropy.js';
+import { inspectUnicodeSafety } from './unicode-validator.js';
 
 export interface VpaValidationResult {
   readonly isValidSyntax: boolean;
@@ -17,7 +18,6 @@ const KNOWN_PSP_SET = new Set(pspAllowlistData.handles.map((h: string) => h.toLo
 // Common high-risk impersonation keywords targeting Indian banking/digital payments
 const IMPERSONATION_TARGETS = [
   'support',
-  'care',
   'customercare',
   'customer-care',
   'customer.care',
@@ -45,9 +45,37 @@ const IMPERSONATION_TARGETS = [
   'income.tax',
   'incometax',
   'challan',
+  'echallan',
+  'e-challan',
+  'parivahan',
   'trafficpolice',
+  'traffic',
+  'bescom',
+  'mahavitaran',
+  'uppcl',
+  'tneb',
+  'electricity',
+  'discom',
+  'fastag',
+  'indiapost',
+  'speedpost',
+  'postoffice',
+  'fedex',
+  'dtdc',
+  'bluedart',
   'gov.in'
 ] as const;
+
+function matchesImpersonationKeyword(text: string, keyword: string): boolean {
+  // For short acronyms (<= 3 chars, e.g. 'rbi'), require delimiter or word boundaries
+  // so substrings inside common words (e.g. 'inorbit') do not trigger false positives
+  if (keyword.length <= 3) {
+    const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`(^|[._\\-])${escaped}([._\\-]|$)`, 'i');
+    return regex.test(text);
+  }
+  return text.includes(keyword);
+}
 
 // Bank/brand names frequently impersonated in scams
 const IMPERSONATED_BRANDS = [
@@ -67,11 +95,14 @@ const IMPERSONATED_BRANDS = [
 
 /**
  * Validates a UPI Virtual Payment Address (VPA) / UPI ID.
+ * Hardened against zero-width characters, bidirectional overrides, and Unicode homoglyphs.
  */
 export function validateVpa(vpa: string): VpaValidationResult {
-  const cleanVpa = vpa.trim().toLowerCase();
-  const atIndex = cleanVpa.indexOf('@');
+  const unicodeCheck = inspectUnicodeSafety(vpa);
+  const cleanVpa = unicodeCheck.sanitized.trim().toLowerCase();
+  const normalizedVpa = unicodeCheck.normalizedAscii.trim().toLowerCase();
 
+  const atIndex = cleanVpa.indexOf('@');
   if (atIndex <= 0 || atIndex === cleanVpa.length - 1 || cleanVpa.indexOf('@', atIndex + 1) !== -1) {
     return {
       isValidSyntax: false,
@@ -88,10 +119,13 @@ export function validateVpa(vpa: string): VpaValidationResult {
   const localPart = cleanVpa.slice(0, atIndex);
   const pspHandle = cleanVpa.slice(atIndex + 1);
 
-  // VPA local part should follow valid UPI characters (alphanumeric, dot, hyphen, underscore)
+  const normalizedAtIndex = normalizedVpa.indexOf('@');
+  const normalizedLocalPart = normalizedAtIndex !== -1 ? normalizedVpa.slice(0, normalizedAtIndex) : localPart;
+
+  // VPA local part should follow valid UPI characters (alphanumeric, dot, hyphen, underscore) and have no hidden Unicode
   const isValidLocal = /^[a-z0-9._-]+$/.test(localPart);
   const isValidHandle = /^[a-z0-9]+$/.test(pspHandle);
-  const isValidSyntax = isValidLocal && isValidHandle;
+  const isValidSyntax = isValidLocal && isValidHandle && !unicodeCheck.hasHiddenUnicode;
 
   const isKnownPsp = KNOWN_PSP_SET.has(pspHandle);
 
@@ -106,11 +140,14 @@ export function validateVpa(vpa: string): VpaValidationResult {
   // High entropy check: > 3.4 for strings of length >= 8 indicates random machine-generated usernames
   const highEntropy = comp.length >= 8 && comp.entropy >= 3.4;
 
-  // Impersonation detection
+  // Impersonation detection (checks both raw and homoglyph-normalized representation)
   const matchedImpersonations: string[] = [];
 
   for (const keyword of IMPERSONATION_TARGETS) {
-    if (localPart.includes(keyword)) {
+    if (
+      matchesImpersonationKeyword(localPart, keyword) ||
+      matchesImpersonationKeyword(normalizedLocalPart, keyword)
+    ) {
       matchedImpersonations.push(keyword);
     }
   }
@@ -123,7 +160,14 @@ export function validateVpa(vpa: string): VpaValidationResult {
       const hyphen = `${brand}-${service}`;
       const under = `${brand}_${service}`;
       if (
-        (localPart.includes(compound) || localPart.includes(dotted) || localPart.includes(hyphen) || localPart.includes(under)) &&
+        (localPart.includes(compound) ||
+          localPart.includes(dotted) ||
+          localPart.includes(hyphen) ||
+          localPart.includes(under) ||
+          normalizedLocalPart.includes(compound) ||
+          normalizedLocalPart.includes(dotted) ||
+          normalizedLocalPart.includes(hyphen) ||
+          normalizedLocalPart.includes(under)) &&
         !matchedImpersonations.includes(`${brand}.${service}`)
       ) {
         matchedImpersonations.push(`${brand}.${service}`);

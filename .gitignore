@@ -8,3 +8,9 @@ build/
 coverage/
 .turbo/
 *.sqlite*
+packages/core/test/*.js
+packages/core/test/*.d.ts
+packages/core/test/*.map
+packages/core/test/**/*.js
+packages/core/test/**/*.d.ts
+packages/core/test/**/*.map
