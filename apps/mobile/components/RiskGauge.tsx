@@ -23,18 +23,34 @@ export const RiskGauge: React.FC<RiskGaugeProps> = ({ score, category }) => {
     }
   };
 
+  const getCategorySubtitle = () => {
+    switch (category) {
+      case 'SAFE':
+        return 'Standard Protocol Verified · No Active Warnings';
+      case 'SUSPICIOUS':
+        return 'Heuristic Irregularities · Manual Verification Needed';
+      case 'HIGH_RISK':
+        return 'Critical Fraud / Impersonation Indicators Detected';
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <View style={[styles.outerRing, { borderColor: riskColor, backgroundColor: riskBg }]}>
-        <View style={styles.innerCircle}>
-          <Text style={[styles.scoreText, { color: riskColor }]}>{score}</Text>
-          <Text style={styles.scoreScale}>/ 100</Text>
+      <View style={[styles.outerGlow, { backgroundColor: riskBg, borderColor: riskColor }]}>
+        <View style={[styles.ringTrack, { borderColor: riskColor }]}>
+          <View style={styles.innerDial}>
+            <Text style={[styles.scoreNumber, { color: riskColor }]}>{score}</Text>
+            <Text style={styles.scoreScale}>/ 100</Text>
+            <Text style={styles.scoreLabel}>RISK INDEX</Text>
+          </View>
         </View>
       </View>
 
       <View style={[styles.badge, { backgroundColor: riskColor }]}>
         <Text style={styles.badgeText}>{getCategoryLabel()}</Text>
       </View>
+
+      <Text style={styles.categorySubtext}>{getCategorySubtitle()}</Text>
       <Text style={styles.scaleHelper}>0 = Minimal Risk Indicators · 100 = Severe Fraud Indicators</Text>
     </View>
   );
@@ -43,57 +59,85 @@ export const RiskGauge: React.FC<RiskGaugeProps> = ({ score, category }) => {
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    marginVertical: 16
+    marginVertical: 18
   },
-  outerRing: {
-    width: 170,
-    height: 170,
-    borderRadius: 85,
-    borderWidth: 8,
+  outerGlow: {
+    padding: 6,
+    borderRadius: 95,
+    borderWidth: 1.5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.5,
+    shadowRadius: 16,
+    elevation: 10
+  },
+  ringTrack: {
+    width: 164,
+    height: 164,
+    borderRadius: 82,
+    borderWidth: 7,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 8
+    backgroundColor: COLORS.bgCardElevated
   },
-  innerCircle: {
-    width: 136,
-    height: 136,
-    borderRadius: 68,
+  innerDial: {
+    width: 134,
+    height: 134,
+    borderRadius: 67,
     backgroundColor: COLORS.bgCard,
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.07)'
   },
-  scoreText: {
-    fontSize: 54,
-    fontWeight: '800',
-    letterSpacing: -1
+  scoreNumber: {
+    fontSize: 52,
+    fontWeight: '900',
+    letterSpacing: -1.5,
+    lineHeight: 56
   },
   scoreScale: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 13,
+    fontWeight: '700',
     color: COLORS.textMuted,
-    marginTop: -4
+    marginTop: -2
+  },
+  scoreLabel: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: COLORS.textSecondary,
+    letterSpacing: 1.2,
+    marginTop: 2
   },
   badge: {
+    paddingHorizontal: 16,
+    paddingVertical: 7,
+    borderRadius: 20,
     marginTop: 16,
-    paddingHorizontal: 18,
-    paddingVertical: 8,
-    borderRadius: 20
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4
   },
   badgeText: {
     color: '#FFFFFF',
-    fontWeight: '700',
-    fontSize: 14,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5
+    fontWeight: '900',
+    fontSize: 13,
+    letterSpacing: 0.6,
+    textAlign: 'center'
+  },
+  categorySubtext: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    fontWeight: '600',
+    marginTop: 6,
+    textAlign: 'center'
   },
   scaleHelper: {
-    fontSize: 12,
+    fontSize: 11,
     color: COLORS.textMuted,
-    marginTop: 8,
+    marginTop: 4,
     textAlign: 'center'
   }
 });

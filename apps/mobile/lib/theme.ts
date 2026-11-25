@@ -1,40 +1,49 @@
 export const COLORS = {
   // Backgrounds
-  bgPrimary: '#0B0F19',
+  bgPrimary: '#0A0E1A',
   bgSecondary: '#111827',
-  bgCard: '#1E293B',
-  bgCardHover: '#283548',
-  bgInput: '#0F172A',
+  bgCard: '#151D30',
+  bgCardHover: '#1E293B',
+  bgCardElevated: '#1A2338',
+  bgInput: '#0D1322',
 
-  // Borders
-  borderLight: '#334155',
-  borderHighlight: '#475569',
+  // Borders & Dividers
+  borderLight: '#26334D',
+  borderHighlight: '#3B82F6',
+  borderCard: 'rgba(255, 255, 255, 0.08)',
+  borderCardHover: 'rgba(59, 130, 246, 0.35)',
 
   // Typography
   textPrimary: '#F8FAFC',
   textSecondary: '#94A3B8',
   textMuted: '#64748B',
+  textDim: '#475569',
 
   // Brand Accent
-  primary: '#3B82F6',
-  primaryHover: '#2563EB',
-  primaryLight: '#60A5FA',
+  primary: '#2563EB',
+  primaryHover: '#1D4ED8',
+  primaryLight: '#38BDF8',
+  accentCyan: '#06B6D4',
+  accentIndigo: '#6366F1',
 
   // Status / Risk
   safe: '#10B981',
-  safeBg: '#064E3B',
+  safeBg: 'rgba(16, 185, 129, 0.12)',
   safeBorder: '#059669',
+  safeGlow: 'rgba(16, 185, 129, 0.25)',
 
   suspicious: '#F59E0B',
-  suspiciousBg: '#78350F',
+  suspiciousBg: 'rgba(245, 158, 11, 0.12)',
   suspiciousBorder: '#D97706',
+  suspiciousGlow: 'rgba(245, 158, 11, 0.25)',
 
-  highRisk: '#EF4444',
-  highRiskBg: '#7F1D1D',
-  highRiskBorder: '#DC2626',
+  highRisk: '#F43F5E',
+  highRiskBg: 'rgba(244, 63, 94, 0.14)',
+  highRiskBorder: '#E11D48',
+  highRiskGlow: 'rgba(244, 63, 94, 0.25)',
 
-  // Severity
-  critical: '#DC2626',
+  // Severity Badges
+  critical: '#E11D48',
   high: '#EA580C',
   medium: '#D97706',
   low: '#2563EB',

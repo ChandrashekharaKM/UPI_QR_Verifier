@@ -8,9 +8,12 @@ export default function AboutScreen() {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Title Header */}
       <View style={styles.header}>
+        <View style={styles.headerBadge}>
+          <Text style={styles.headerBadgeText}>ARCHITECTURE & SPECS</Text>
+        </View>
         <Text style={styles.title}>Payment QR Code Alert System</Text>
         <Text style={styles.subtitle}>
-          How UPI QR Verifier analyzes transactions to keep you safe from digital payment fraud.
+          How UPI QR Verifier analyzes transactions to keep you safe from digital payment fraud before you pay.
         </Text>
       </View>
 
@@ -99,28 +102,6 @@ export default function AboutScreen() {
           In addition to standard <Text style={styles.codeText}>upi://pay</Text> links, the verifier natively decodes and verifies official <Text style={styles.highlightText}>BharatQR / EMVCo</Text> merchant standees (Tag-Length-Value format starting with 000201), Android intent links (<Text style={styles.codeText}>intent://pay</Text>), and cryptographically signed merchant stickers from PhonePe, Paytm, Google Pay, and Pine Labs.
         </Text>
       </View>
-
-      {/* Official Cybercrime Emergency Helpline */}
-      <View style={[styles.card, { borderColor: '#F87171' }]}>
-        <Text style={[styles.cardTitle, { color: '#F87171' }]}>📞 Official Fraud Reporting Helpline</Text>
-        <Text style={styles.cardBody}>
-          If you have been targeted by a payment scam or have sent funds under coercion:
-          {'\n\n'}
-          • <Text style={styles.boldText}>National Cyber Crime Helpline:</Text> Call <Text style={styles.highlightText}>1930</Text> immediately to freeze fraudulent transaction rails.
-          {'\n'}
-          • <Text style={styles.boldText}>Online Portal:</Text> File an official incident report at <Text style={styles.codeText}>cybercrime.gov.in</Text>.
-          {'\n'}
-          • <Text style={styles.boldText}>Golden Rule:</Text> You <Text style={styles.boldText}>NEVER</Text> scan a QR code or enter your UPI PIN to receive money.
-        </Text>
-      </View>
-
-      {/* Privacy Guarantee */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>🔒 Privacy & On-Device Processing</Text>
-        <Text style={styles.cardBody}>
-          Your financial privacy is sacred. All rule evaluation, feature extraction, and machine learning inference run <Text style={styles.highlightText}>entirely on your device</Text>. No transaction details, payee names, or amounts are transmitted to external servers unless you explicitly choose to submit a scam report.
-        </Text>
-      </View>
     </ScrollView>
   );
 }
@@ -131,48 +112,72 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.bgPrimary
   },
   content: {
-    padding: 20,
+    padding: 18,
     paddingBottom: 40
   },
   header: {
     marginBottom: 16
   },
+  headerBadge: {
+    backgroundColor: 'rgba(56, 189, 248, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(56, 189, 248, 0.3)',
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    alignSelf: 'flex-start',
+    marginBottom: 8
+  },
+  headerBadgeText: {
+    color: '#38BDF8',
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.8
+  },
   title: {
     fontSize: 22,
     fontWeight: '800',
     color: COLORS.textPrimary,
-    marginBottom: 6
+    marginBottom: 6,
+    letterSpacing: -0.3
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 13,
     color: COLORS.textSecondary,
-    lineHeight: 20
+    lineHeight: 19
   },
   card: {
     backgroundColor: COLORS.bgCard,
-    borderColor: COLORS.borderLight,
+    borderColor: COLORS.borderCard,
     borderWidth: 1,
     borderRadius: 16,
     padding: 18,
-    marginBottom: 14
+    marginBottom: 14,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 2
   },
   cardBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+    backgroundColor: 'rgba(56, 189, 248, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(56, 189, 248, 0.35)',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
-    marginBottom: 8
+    alignSelf: 'flex-start',
+    marginBottom: 10
   },
   badgeText: {
+    color: '#38BDF8',
     fontSize: 10,
     fontWeight: '800',
-    color: COLORS.primaryLight,
-    letterSpacing: 0.5
+    letterSpacing: 0.6
   },
   cardTitle: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '800',
     color: COLORS.textPrimary,
     marginBottom: 8
   },
@@ -182,50 +187,50 @@ const styles = StyleSheet.create({
     lineHeight: 20
   },
   codeText: {
+    color: '#38BDF8',
     fontFamily: 'monospace',
-    color: COLORS.primaryLight,
-    backgroundColor: COLORS.bgInput,
-    paddingHorizontal: 4
+    fontWeight: '700'
   },
   highlightText: {
-    color: COLORS.textPrimary,
+    color: '#F8FAFC',
     fontWeight: '700'
   },
   warningCard: {
-    borderColor: '#D97706',
-    backgroundColor: 'rgba(245, 158, 11, 0.05)'
+    backgroundColor: 'rgba(239, 68, 68, 0.08)',
+    borderColor: 'rgba(239, 68, 68, 0.3)',
+    borderWidth: 1.5
   },
   warningTitle: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#F59E0B',
+    color: '#EF4444',
     marginBottom: 8
   },
   warningBody: {
     fontSize: 13,
-    color: '#FEF3C7',
-    lineHeight: 18,
+    color: '#FECACA',
+    lineHeight: 19,
     marginBottom: 12
   },
   bulletItem: {
     flexDirection: 'row',
-    marginBottom: 8,
-    alignItems: 'flex-start'
+    alignItems: 'flex-start',
+    marginBottom: 10
   },
   bulletDot: {
-    color: '#F59E0B',
-    fontSize: 16,
+    fontSize: 14,
+    color: '#F87171',
     marginRight: 8,
-    marginTop: -2
+    marginTop: 1
   },
   bulletText: {
+    flex: 1,
     fontSize: 12,
-    color: '#F1F5F9',
-    lineHeight: 18,
-    flex: 1
+    color: '#E2E8F0',
+    lineHeight: 18
   },
   boldText: {
     fontWeight: '700',
-    color: '#FFF'
+    color: '#FFFFFF'
   }
 });

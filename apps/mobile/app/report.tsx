@@ -63,9 +63,12 @@ export default function ReportScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.card}>
+        <View style={styles.badgeTop}>
+          <Text style={styles.badgeTopText}>COMMUNITY THREAT INTELLIGENCE</Text>
+        </View>
         <Text style={styles.title}>Submit Scam Intelligence</Text>
         <Text style={styles.subtitle}>
-          Help protect other users by submitting verified fraudulent UPI handles to the community database.
+          Help protect other users by submitting verified fraudulent UPI handles to the decay-weighted community database.
         </Text>
 
         {/* VPA Input */}
@@ -92,6 +95,7 @@ export default function ReportScreen() {
                 styles.reasonChip,
                 reason === opt.id && styles.reasonChipSelected
               ]}
+              activeOpacity={0.8}
               onPress={() => setReason(opt.id)}
             >
               <Text
@@ -106,44 +110,38 @@ export default function ReportScreen() {
           ))}
         </View>
 
-        {/* Additional Note */}
+        {/* Notes Input */}
         <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Additional Context (Optional)</Text>
+          <Text style={styles.inputLabel}>Incident Evidence / Notes (Optional)</Text>
           <TextInput
             style={[styles.textInput, styles.textArea]}
             value={note}
             onChangeText={setNote}
-            placeholder="Describe how the scammer approached you (e.g. OLX listing, WhatsApp refund link)..."
+            placeholder="Describe how the QR was encountered (e.g. sticker pasted over stall, SMS link, fake OLX buyer)..."
             placeholderTextColor={COLORS.textMuted}
             multiline
             numberOfLines={4}
           />
         </View>
 
-        {/* Privacy Note */}
-        <View style={styles.privacyNote}>
-          <Text style={styles.privacyIcon}>🔒</Text>
-          <Text style={styles.privacyText}>
-            Privacy Guaranteed: We never collect your name, phone number, or bank details. Only a cryptographic one-way hash of your device identifier is stored to prevent automated spam.
-          </Text>
-        </View>
-
-        {/* Status Feedback */}
         {statusMessage ? (
           <View
             style={[
-              styles.feedbackBox,
+              styles.statusBanner,
               statusMessage.type === 'success'
-                ? styles.feedbackSuccess
-                : styles.feedbackError
+                ? styles.statusBannerSuccess
+                : styles.statusBannerError
             ]}
           >
+            <Text style={styles.statusBannerIcon}>
+              {statusMessage.type === 'success' ? '✓' : '⚠️'}
+            </Text>
             <Text
               style={[
-                styles.feedbackText,
+                styles.statusBannerText,
                 statusMessage.type === 'success'
-                  ? styles.feedbackSuccessText
-                  : styles.feedbackErrorText
+                  ? styles.statusBannerTextSuccess
+                  : styles.statusBannerTextError
               ]}
             >
               {statusMessage.text}
@@ -151,19 +149,24 @@ export default function ReportScreen() {
           </View>
         ) : null}
 
-        {/* Submit Button */}
         <TouchableOpacity
-          style={styles.submitButton}
+          style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]}
+          disabled={isSubmitting}
           activeOpacity={0.85}
           onPress={handleSubmit}
-          disabled={isSubmitting}
         >
           {isSubmitting ? (
-            <ActivityIndicator color="#FFF" />
+            <ActivityIndicator size="small" color="#FFFFFF" />
           ) : (
-            <Text style={styles.submitButtonText}>Submit Report</Text>
+            <Text style={styles.submitButtonText}>Submit to Community Threat Database</Text>
           )}
         </TouchableOpacity>
+
+        <View style={styles.privacyCallout}>
+          <Text style={styles.privacyCalloutText}>
+            🛡️ Submissions undergo automated reporter deduplication and exponential time decay (30-day half-life). Device identifiers are cryptographically hashed.
+          </Text>
+        </View>
       </View>
     </ScrollView>
   );
@@ -175,133 +178,157 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.bgPrimary
   },
   content: {
-    padding: 20
+    padding: 18,
+    paddingBottom: 40
   },
   card: {
     backgroundColor: COLORS.bgCard,
-    borderColor: COLORS.borderLight,
+    borderColor: COLORS.borderCard,
     borderWidth: 1,
     borderRadius: 18,
-    padding: 20
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 4
+  },
+  badgeTop: {
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.3)',
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    alignSelf: 'flex-start',
+    marginBottom: 8
+  },
+  badgeTopText: {
+    color: '#EF4444',
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.8
   },
   title: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '800',
     color: COLORS.textPrimary,
-    marginBottom: 6
+    marginBottom: 6,
+    letterSpacing: -0.3
   },
   subtitle: {
     fontSize: 13,
     color: COLORS.textSecondary,
-    lineHeight: 18,
+    lineHeight: 19,
     marginBottom: 20
   },
   inputGroup: {
-    marginBottom: 16
+    marginBottom: 18
   },
   inputLabel: {
     fontSize: 12,
     fontWeight: '700',
     color: COLORS.textPrimary,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 8
+    marginBottom: 8,
+    letterSpacing: 0.2
   },
   textInput: {
     backgroundColor: COLORS.bgInput,
     borderColor: COLORS.borderLight,
     borderWidth: 1,
     borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
     color: COLORS.textPrimary,
-    fontSize: 14,
-    padding: 14
+    fontSize: 14
   },
   textArea: {
     minHeight: 90,
     textAlignVertical: 'top'
   },
   reasonChip: {
-    backgroundColor: COLORS.bgInput,
-    borderColor: COLORS.borderLight,
+    backgroundColor: COLORS.bgCardElevated,
+    borderColor: COLORS.borderCard,
     borderWidth: 1,
     borderRadius: 12,
-    paddingVertical: 12,
     paddingHorizontal: 14,
+    paddingVertical: 12,
     marginBottom: 8
   },
   reasonChipSelected: {
-    borderColor: COLORS.primary,
-    backgroundColor: 'rgba(59, 130, 246, 0.15)'
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    borderColor: '#EF4444'
   },
   reasonChipText: {
     color: COLORS.textSecondary,
     fontSize: 13,
-    fontWeight: '500'
+    fontWeight: '600'
   },
   reasonChipTextSelected: {
-    color: COLORS.primaryLight,
+    color: '#F87171',
     fontWeight: '700'
   },
-  privacyNote: {
-    flexDirection: 'row',
-    backgroundColor: 'rgba(15, 23, 42, 0.6)',
-    borderColor: COLORS.borderLight,
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 12,
-    marginVertical: 14,
-    alignItems: 'flex-start'
-  },
-  privacyIcon: {
-    fontSize: 16,
-    marginRight: 8,
-    marginTop: 2
-  },
-  privacyText: {
-    color: COLORS.textMuted,
-    fontSize: 11,
-    lineHeight: 16,
-    flex: 1
-  },
-  feedbackBox: {
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 14,
-    borderWidth: 1
-  },
-  feedbackSuccess: {
-    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-    borderColor: COLORS.safe
-  },
-  feedbackSuccessText: {
-    color: COLORS.safe
-  },
-  feedbackError: {
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-    borderColor: COLORS.highRisk
-  },
-  feedbackErrorText: {
-    color: '#FCA5A5'
-  },
-  feedbackText: {
-    fontSize: 13,
-    fontWeight: '600',
-    textAlign: 'center'
-  },
   submitButton: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: '#DC2626',
     borderRadius: 14,
-    paddingVertical: 16,
+    paddingVertical: 15,
     alignItems: 'center',
-    shadowColor: COLORS.primary,
+    marginTop: 8,
+    shadowColor: '#DC2626',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.35,
     shadowRadius: 8,
     elevation: 4
   },
+  submitButtonDisabled: {
+    opacity: 0.6
+  },
   submitButtonText: {
-    color: '#FFF',
-    fontSize: 15,
-    fontWeight: '700'
+    color: '#FFFFFF',
+    fontWeight: '800',
+    fontSize: 14,
+    letterSpacing: 0.2
+  },
+  statusBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 16,
+    borderWidth: 1
+  },
+  statusBannerSuccess: {
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    borderColor: COLORS.safe
+  },
+  statusBannerError: {
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+    borderColor: COLORS.highRisk
+  },
+  statusBannerIcon: {
+    fontSize: 16,
+    marginRight: 8
+  },
+  statusBannerText: {
+    flex: 1,
+    fontSize: 13,
+    fontWeight: '600'
+  },
+  statusBannerTextSuccess: {
+    color: COLORS.safe
+  },
+  statusBannerTextError: {
+    color: '#FCA5A5'
+  },
+  privacyCallout: {
+    marginTop: 16,
+    paddingTop: 14,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.06)'
+  },
+  privacyCalloutText: {
+    color: COLORS.textMuted,
+    fontSize: 11,
+    lineHeight: 16
   }
 });

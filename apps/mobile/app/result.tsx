@@ -34,6 +34,7 @@ export default function ResultScreen() {
   const [isEnriching, setIsEnriching] = useState(false);
   const [showHighRiskModal, setShowHighRiskModal] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [copiedVpa, setCopiedVpa] = useState(false);
 
   const handleCopyRawPayload = async () => {
     try {
@@ -49,6 +50,23 @@ export default function ResultScreen() {
       setTimeout(() => setCopied(false), 2200);
     } catch (err) {
       console.warn('Failed to copy raw payload:', err);
+    }
+  };
+
+  const handleCopyVpa = async (vpaText: string) => {
+    try {
+      if (Platform.OS === 'web' && typeof navigator !== 'undefined' && navigator.clipboard) {
+        await navigator.clipboard.writeText(vpaText);
+      } else {
+        await Clipboard.setStringAsync(vpaText);
+      }
+      if (Platform.OS !== 'web') {
+        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
+      setCopiedVpa(true);
+      setTimeout(() => setCopiedVpa(false), 2200);
+    } catch (err) {
+      console.warn('Failed to copy VPA:', err);
     }
   };
 
@@ -92,8 +110,8 @@ export default function ResultScreen() {
   if (!verification) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
-        <Text style={styles.loadingText}>Analyzing QR code parameters...</Text>
+        <ActivityIndicator size="large" color={COLORS.primaryLight} />
+        <Text style={styles.loadingText}>Analyzing QR code parameters & security rules...</Text>
       </View>
     );
   }
@@ -222,7 +240,7 @@ export default function ResultScreen() {
       <RiskGauge score={verification.score} category={verification.category} />
 
       {/* Confidence / Warning Note */}
-      <View style={[styles.noteCard, { borderColor: riskColor }]}>
+      <View style={[styles.noteCard, { borderLeftColor: riskColor }]}>
         <Text style={styles.noteTitle}>Advisory Note</Text>
         <Text style={styles.noteText}>{verification.confidenceNote}</Text>
       </View>
@@ -272,14 +290,37 @@ export default function ResultScreen() {
         </View>
       ) : null}
 
-      {/* Parsed Fields Information Card */}
+      {/* Decoded Payment Information Dossier Card */}
       <View style={styles.card}>
-        <Text style={styles.cardHeader}>Decoded Payment Information</Text>
+        <View style={styles.dossierHeaderRow}>
+          <Text style={styles.cardHeader}>Decoded Payment Information</Text>
+          {upiFields?.extraParams?.['format'] === 'bharat_qr' ? (
+            <View style={styles.formatBadgeBharatQr}>
+              <Text style={styles.formatBadgeBharatQrText}>BHARATQR / EMVCo</Text>
+            </View>
+          ) : upiFields?.action === 'mandate' ? (
+            <View style={styles.formatBadgeMandate}>
+              <Text style={styles.formatBadgeMandateText}>AUTOPAY MANDATE</Text>
+            </View>
+          ) : (
+            <View style={styles.formatBadgeUpi}>
+              <Text style={styles.formatBadgeUpiText}>UPI PAYMENT</Text>
+            </View>
+          )}
+        </View>
 
         {upiFields ? (
           <View style={styles.fieldsGrid}>
             <View style={styles.fieldRow}>
-              <Text style={styles.fieldLabel}>Payee UPI ID (VPA):</Text>
+              <View style={styles.labelCopyRow}>
+                <Text style={styles.fieldLabel}>Payee UPI ID (VPA):</Text>
+                <TouchableOpacity
+                  style={styles.inlineCopyBtn}
+                  onPress={() => handleCopyVpa(upiFields.pa)}
+                >
+                  <Text style={styles.inlineCopyText}>{copiedVpa ? '✓ Copied' : '📋 Copy VPA'}</Text>
+                </TouchableOpacity>
+              </View>
               <Text style={styles.fieldValuePrimary} selectable>
                 {upiFields.pa}
               </Text>
@@ -287,7 +328,7 @@ export default function ResultScreen() {
 
             <View style={styles.fieldRow}>
               <Text style={styles.fieldLabel}>Declared Payee Name:</Text>
-              <Text style={styles.fieldValue}>
+              <Text style={styles.fieldValueName}>
                 {upiFields.pn ?? '(Not provided in QR)'}
               </Text>
             </View>
@@ -770,7 +811,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.bgPrimary
   },
   content: {
-    padding: 20,
+    padding: 18,
     paddingBottom: 40
   },
   centerContainer: {
@@ -783,14 +824,15 @@ const styles = StyleSheet.create({
   loadingText: {
     color: COLORS.textSecondary,
     fontSize: 14,
-    marginTop: 12
+    marginTop: 14,
+    fontWeight: '600'
   },
   offlineNotice: {
     backgroundColor: 'rgba(51, 65, 85, 0.6)',
     borderColor: COLORS.borderLight,
     borderWidth: 1,
-    borderRadius: 10,
-    padding: 10,
+    borderRadius: 12,
+    padding: 12,
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 12
@@ -802,33 +844,41 @@ const styles = StyleSheet.create({
   offlineText: {
     color: COLORS.textSecondary,
     fontSize: 12,
-    fontWeight: '500'
+    fontWeight: '600'
   },
   noteCard: {
     backgroundColor: COLORS.bgCard,
     borderLeftWidth: 4,
-    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.borderCard,
+    borderRadius: 14,
     padding: 14,
-    marginVertical: 10
+    marginVertical: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 3
   },
   noteTitle: {
-    color: COLORS.textMuted,
-    fontSize: 11,
-    fontWeight: '700',
+    color: COLORS.primaryLight,
+    fontSize: 10,
+    fontWeight: '800',
     textTransform: 'uppercase',
+    letterSpacing: 0.8,
     marginBottom: 4
   },
   noteText: {
     color: COLORS.textPrimary,
     fontSize: 13,
-    lineHeight: 18,
+    lineHeight: 19,
     fontWeight: '600'
   },
   nonPaymentBanner: {
-    backgroundColor: 'rgba(56, 189, 248, 0.12)',
+    backgroundColor: 'rgba(56, 189, 248, 0.1)',
     borderColor: '#0284C7',
     borderWidth: 1,
-    borderRadius: 12,
+    borderRadius: 14,
     padding: 14,
     flexDirection: 'row',
     alignItems: 'center',
@@ -855,14 +905,14 @@ const styles = StyleSheet.create({
     fontWeight: '500'
   },
   helplineBanner: {
-    backgroundColor: 'rgba(239, 68, 68, 0.12)',
-    borderColor: 'rgba(239, 68, 68, 0.4)',
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    borderColor: 'rgba(239, 68, 68, 0.35)',
     borderWidth: 1,
-    borderRadius: 12,
+    borderRadius: 14,
     padding: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 6
+    marginVertical: 8
   },
   helplineIcon: {
     fontSize: 20,
@@ -874,7 +924,7 @@ const styles = StyleSheet.create({
   helplineTitle: {
     color: '#F87171',
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '800',
     marginBottom: 2
   },
   helplineSubtitle: {
@@ -884,21 +934,74 @@ const styles = StyleSheet.create({
   },
   helplineBold: {
     color: '#FCA5A5',
-    fontWeight: '700'
+    fontWeight: '800'
   },
   card: {
     backgroundColor: COLORS.bgCard,
-    borderColor: COLORS.borderLight,
+    borderColor: COLORS.borderCard,
     borderWidth: 1,
-    borderRadius: 16,
+    borderRadius: 18,
     padding: 18,
-    marginVertical: 12
+    marginVertical: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 3
   },
   cardHeader: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '800',
     color: COLORS.textPrimary,
+    letterSpacing: -0.2
+  },
+  dossierHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 14
+  },
+  formatBadgeBharatQr: {
+    backgroundColor: 'rgba(56, 189, 248, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(56, 189, 248, 0.4)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6
+  },
+  formatBadgeBharatQrText: {
+    color: '#38BDF8',
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.5
+  },
+  formatBadgeMandate: {
+    backgroundColor: 'rgba(244, 63, 94, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(244, 63, 94, 0.4)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6
+  },
+  formatBadgeMandateText: {
+    color: '#F43F5E',
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.5
+  },
+  formatBadgeUpi: {
+    backgroundColor: 'rgba(37, 99, 235, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(37, 99, 235, 0.4)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6
+  },
+  formatBadgeUpiText: {
+    color: '#60A5FA',
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.5
   },
   fieldsGrid: {
     gap: 12
@@ -906,28 +1009,53 @@ const styles = StyleSheet.create({
   fieldRow: {
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.05)',
-    paddingBottom: 8
+    paddingBottom: 10
+  },
+  labelCopyRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4
+  },
+  inlineCopyBtn: {
+    backgroundColor: 'rgba(56, 189, 248, 0.1)',
+    borderRadius: 6,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(56, 189, 248, 0.25)'
+  },
+  inlineCopyText: {
+    color: COLORS.primaryLight,
+    fontSize: 10,
+    fontWeight: '700'
   },
   fieldLabel: {
     fontSize: 11,
     color: COLORS.textMuted,
-    fontWeight: '600',
+    fontWeight: '700',
     textTransform: 'uppercase',
-    marginBottom: 2
+    letterSpacing: 0.5
   },
   fieldValuePrimary: {
     fontSize: 15,
-    fontWeight: '700',
-    color: COLORS.primaryLight
+    fontWeight: '800',
+    color: COLORS.primaryLight,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace'
+  },
+  fieldValueName: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: COLORS.textPrimary
   },
   fieldValue: {
     fontSize: 14,
     color: COLORS.textPrimary,
-    fontWeight: '500'
+    fontWeight: '600'
   },
   amountHighlight: {
     color: '#FBBF24',
-    fontWeight: '700'
+    fontWeight: '800'
   },
   section: {
     marginTop: 14
@@ -940,8 +1068,9 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.textPrimary
+    fontWeight: '800',
+    color: COLORS.textPrimary,
+    letterSpacing: -0.2
   },
   cleanCard: {
     backgroundColor: 'rgba(16, 185, 129, 0.08)',
@@ -957,7 +1086,7 @@ const styles = StyleSheet.create({
   },
   cleanTitle: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '800',
     color: COLORS.safe,
     marginBottom: 4
   },
@@ -985,7 +1114,12 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderRadius: 14,
     paddingVertical: 16,
-    alignItems: 'center'
+    alignItems: 'center',
+    shadowColor: COLORS.safe,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 3
   },
   safeDismissText: {
     color: COLORS.safe,
@@ -993,7 +1127,7 @@ const styles = StyleSheet.create({
     fontWeight: '800'
   },
   reportButton: {
-    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
     borderColor: COLORS.highRisk,
     borderWidth: 1,
     borderRadius: 14,
@@ -1062,7 +1196,7 @@ const styles = StyleSheet.create({
   modalCancelText: {
     color: '#FFF',
     fontSize: 14,
-    fontWeight: '700'
+    fontWeight: '800'
   },
   modalConfirmBtn: {
     backgroundColor: 'transparent',
@@ -1467,7 +1601,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(234, 88, 12, 0.1)',
     borderColor: '#F97316',
     borderWidth: 1,
-    borderRadius: 12,
+    borderRadius: 14,
     padding: 14,
     marginVertical: 10
   },
@@ -1504,7 +1638,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(30, 41, 59, 0.95)',
     borderColor: '#38BDF8',
     borderWidth: 1.5,
-    borderRadius: 12,
+    borderRadius: 14,
     padding: 14,
     marginTop: 14,
     marginBottom: 6

@@ -15,8 +15,12 @@ export const ReasonCard: React.FC<ReasonCardProps> = ({ reason, rank }) => {
     <View style={styles.card}>
       <View style={styles.header}>
         <View style={styles.rankContainer}>
-          <Text style={styles.rankText}>#{rank}</Text>
-          <Text style={styles.title}>{reason.title}</Text>
+          <View style={styles.rankBadge}>
+            <Text style={styles.rankText}>#{rank}</Text>
+          </View>
+          <Text style={styles.title} numberOfLines={2}>
+            {reason.title}
+          </Text>
         </View>
         <View style={[styles.badge, { backgroundColor: sevColor }]}>
           <Text style={styles.badgeText}>{reason.severity.toUpperCase()}</Text>
@@ -46,13 +50,18 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: COLORS.borderLight
+    borderColor: COLORS.borderCard,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 5,
+    elevation: 3
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8
+    marginBottom: 10
   },
   rankContainer: {
     flexDirection: 'row',
@@ -60,11 +69,19 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 8
   },
+  rankBadge: {
+    backgroundColor: 'rgba(56, 189, 248, 0.12)',
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 6,
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(56, 189, 248, 0.25)'
+  },
   rankText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: COLORS.primaryLight,
-    marginRight: 6
+    fontSize: 12,
+    fontWeight: '800',
+    color: COLORS.primaryLight
   },
   title: {
     fontSize: 15,
@@ -78,43 +95,49 @@ const styles = StyleSheet.create({
     borderRadius: 6
   },
   badgeText: {
-    fontSize: 10,
-    fontWeight: '800',
     color: '#FFFFFF',
+    fontWeight: '800',
+    fontSize: 10,
     letterSpacing: 0.5
   },
   message: {
-    fontSize: 14,
+    fontSize: 13,
     color: COLORS.textSecondary,
-    lineHeight: 20,
-    marginBottom: 8
+    lineHeight: 19,
+    marginBottom: 10
   },
   evidenceContainer: {
     backgroundColor: COLORS.bgInput,
-    padding: 8,
+    padding: 10,
     borderRadius: 8,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: COLORS.borderLight
+    marginBottom: 10,
+    borderLeftWidth: 3,
+    borderLeftColor: COLORS.primaryLight
   },
   evidenceLabel: {
     fontSize: 11,
     fontWeight: '700',
-    color: COLORS.textMuted,
-    marginBottom: 2
+    color: COLORS.primaryLight,
+    marginBottom: 2,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5
   },
   evidenceText: {
     fontSize: 12,
+    color: COLORS.textSecondary,
     fontFamily: 'monospace',
-    color: COLORS.textSecondary
+    lineHeight: 17
   },
   footer: {
     flexDirection: 'row',
-    justifyContent: 'flex-end'
+    justifyContent: 'flex-end',
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.05)',
+    paddingTop: 8
   },
   impactText: {
     fontSize: 11,
-    fontWeight: '600',
-    color: COLORS.textMuted
+    color: COLORS.textMuted,
+    fontWeight: '600'
   }
 });

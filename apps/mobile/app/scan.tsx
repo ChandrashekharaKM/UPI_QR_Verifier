@@ -90,7 +90,6 @@ export default function ScanScreen() {
             // 1. Try native BarcodeDetector directly on live video stream (hardware accelerated)
             const nativeCodes = await detectAllWithNativeBarcodeDetector(video);
             if (nativeCodes.length > 1) {
-              // Multiple codes found in camera view: NEVER silently pick one!
               setScanned(true);
               if (webStreamRef.current) {
                 webStreamRef.current.getTracks().forEach((track) => track.stop());
@@ -153,8 +152,8 @@ export default function ScanScreen() {
   if (!permission && Platform.OS !== 'web') {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
-        <Text style={styles.statusText}>Checking camera permissions...</Text>
+        <ActivityIndicator size="large" color={COLORS.primaryLight} />
+        <Text style={styles.statusText}>Initializing camera hardware...</Text>
       </View>
     );
   }
@@ -162,16 +161,18 @@ export default function ScanScreen() {
   if (Platform.OS !== 'web' && !permission?.granted) {
     return (
       <View style={styles.centerContainer}>
-        <Text style={styles.errorIcon}>📷</Text>
+        <View style={styles.lockBadge}>
+          <Text style={styles.errorIcon}>📷</Text>
+        </View>
         <Text style={styles.permissionTitle}>Camera Permission Required</Text>
         <Text style={styles.permissionDesc}>
-          To inspect payment QR codes before paying, UPI QR Verifier needs access to your camera.
+          To inspect payment standees and QR codes before paying, UPI QR Verifier needs camera permission.
         </Text>
         <TouchableOpacity style={styles.grantButton} onPress={requestPermission}>
-          <Text style={styles.grantButtonText}>Grant Permission</Text>
+          <Text style={styles.grantButtonText}>Grant Camera Access</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.textButton} onPress={() => setShowManual(true)}>
-          <Text style={styles.textButtonText}>Enter QR Payload Text Manually</Text>
+          <Text style={styles.textButtonText}>Or Enter QR Payload Text Manually</Text>
         </TouchableOpacity>
       </View>
     );
@@ -245,15 +246,19 @@ export default function ScanScreen() {
         </View>
       )}
 
-      {/* Viewfinder Overlay */}
+      {/* High-Tech Viewfinder HUD Overlay */}
       <View style={styles.overlay}>
         <View style={styles.topBar}>
-          <Text style={styles.hintText}>Align payment QR code within the frame</Text>
+          <View style={styles.hudPill}>
+            <View style={styles.hudDot} />
+            <Text style={styles.hintText}>ALIGN PAYMENT QR INSIDE RETICLE</Text>
+          </View>
           <TouchableOpacity
             style={[styles.torchButton, torchEnabled && styles.torchActive]}
+            activeOpacity={0.8}
             onPress={() => setTorchEnabled(!torchEnabled)}
           >
-            <Text style={styles.torchIcon}>{torchEnabled ? '🔦 ON' : '🔦 Torch'}</Text>
+            <Text style={styles.torchText}>{torchEnabled ? '🔦 FLASH ON' : '🔦 FLASH'}</Text>
           </TouchableOpacity>
         </View>
 
@@ -264,34 +269,37 @@ export default function ScanScreen() {
             <View style={[styles.corner, styles.cornerTR]} />
             <View style={[styles.corner, styles.cornerBL]} />
             <View style={[styles.corner, styles.cornerBR]} />
-            <View style={styles.scanLine} />
+            <View style={styles.reticleCenterPlus} />
           </View>
+          <Text style={styles.reticleHelperText}>Auto-analyzing offline · Multi-standee aware</Text>
         </View>
 
+        {/* Bottom Control Bar */}
         <View style={styles.bottomBar}>
           <TouchableOpacity
             style={styles.manualButton}
+            activeOpacity={0.8}
             onPress={() => setShowManual(!showManual)}
           >
             <Text style={styles.manualButtonText}>
-              {showManual ? 'Hide Manual Input' : 'Type or Paste QR Text'}
+              {showManual ? 'Hide Manual Input' : '⌨️ Type or Paste QR Code'}
             </Text>
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* Manual Input Modal / Box */}
+      {/* Manual Input Sheet */}
       {showManual ? (
         <View style={styles.manualModal}>
-          <Text style={styles.manualTitle}>Manual QR Payload Input</Text>
+          <Text style={styles.manualTitle}>Manual QR Payload Inspector</Text>
           <Text style={styles.manualHelp}>
-            Paste the raw `upi://pay` URI or scanned web link:
+            Paste any `upi://pay`, intent deep link, or BharatQR raw text:
           </Text>
           <TextInput
             style={styles.manualInput}
             value={manualInput}
             onChangeText={setManualInput}
-            placeholder="upi://pay?pa=merchant@okhdfcbank&pn=Store..."
+            placeholder="upi://pay?pa=merchant@okhdfcbank&pn=Store&am=150.00..."
             placeholderTextColor={COLORS.textMuted}
             multiline
             autoCapitalize="none"
@@ -305,14 +313,15 @@ export default function ScanScreen() {
               <Text style={styles.manualCancelText}>Cancel</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.manualSubmitBtn}
+              style={[styles.manualSubmitBtn, !manualInput.trim() && styles.manualSubmitDisabled]}
+              disabled={!manualInput.trim()}
               onPress={() => {
                 if (manualInput.trim()) {
                   handleQrDetected(manualInput.trim());
                 }
               }}
             >
-              <Text style={styles.manualSubmitText}>Analyze Risk</Text>
+              <Text style={styles.manualSubmitText}>Inspect Payload</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -340,7 +349,7 @@ export default function ScanScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000'
+    backgroundColor: '#000000'
   },
   centerContainer: {
     flex: 1,
@@ -352,17 +361,28 @@ const styles = StyleSheet.create({
   statusText: {
     color: COLORS.textSecondary,
     fontSize: 14,
-    marginTop: 12
+    marginTop: 14,
+    fontWeight: '600'
+  },
+  lockBadge: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: COLORS.bgCardElevated,
+    borderWidth: 2,
+    borderColor: 'rgba(56, 189, 248, 0.35)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20
   },
   errorIcon: {
-    fontSize: 48,
-    marginBottom: 16
+    fontSize: 36
   },
   permissionTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '800',
     color: COLORS.textPrimary,
-    marginBottom: 8,
+    marginBottom: 10,
     textAlign: 'center'
   },
   permissionDesc: {
@@ -370,7 +390,8 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     textAlign: 'center',
     lineHeight: 20,
-    marginBottom: 24
+    marginBottom: 24,
+    maxWidth: 320
   },
   grantButton: {
     backgroundColor: COLORS.primary,
@@ -378,55 +399,77 @@ const styles = StyleSheet.create({
     paddingHorizontal: 28,
     borderRadius: 14,
     width: '100%',
-    alignItems: 'center'
+    alignItems: 'center',
+    marginBottom: 12,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4
   },
   grantButtonText: {
-    color: '#FFF',
-    fontSize: 16,
-    fontWeight: '700'
+    color: '#FFFFFF',
+    fontWeight: '800',
+    fontSize: 15
   },
   textButton: {
-    marginTop: 16,
-    padding: 8
+    paddingVertical: 12
   },
   textButtonText: {
     color: COLORS.primaryLight,
-    fontSize: 14,
-    fontWeight: '600'
+    fontWeight: '700',
+    fontSize: 14
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'space-between',
-    padding: 24
+    padding: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.35)'
   },
   topBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: 'rgba(11, 15, 25, 0.75)',
-    paddingVertical: 10,
-    paddingHorizontal: 14,
+    marginTop: Platform.OS === 'ios' ? 44 : 20
+  },
+  hudPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(15, 23, 42, 0.85)',
+    borderWidth: 1,
+    borderColor: 'rgba(56, 189, 248, 0.4)',
     borderRadius: 20,
-    marginTop: 16
+    paddingHorizontal: 12,
+    paddingVertical: 6
+  },
+  hudDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: COLORS.primaryLight,
+    marginRight: 8
   },
   hintText: {
-    color: '#FFF',
-    fontSize: 13,
-    fontWeight: '600',
-    flex: 1
+    color: '#F8FAFC',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.8
   },
   torchButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 12
+    backgroundColor: 'rgba(15, 23, 42, 0.85)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 6
   },
   torchActive: {
-    backgroundColor: COLORS.primary
+    backgroundColor: 'rgba(245, 158, 11, 0.25)',
+    borderColor: '#F59E0B'
   },
-  torchIcon: {
-    color: '#FFF',
-    fontSize: 12,
+  torchText: {
+    color: '#F8FAFC',
+    fontSize: 11,
     fontWeight: '700'
   },
   reticleContainer: {
@@ -437,14 +480,13 @@ const styles = StyleSheet.create({
     width: 260,
     height: 260,
     position: 'relative',
-    justifyContent: 'center',
-    alignItems: 'center'
+    backgroundColor: 'transparent'
   },
   corner: {
     position: 'absolute',
     width: 32,
     height: 32,
-    borderColor: COLORS.primary,
+    borderColor: '#38BDF8',
     borderWidth: 4
   },
   cornerTL: {
@@ -452,116 +494,138 @@ const styles = StyleSheet.create({
     left: 0,
     borderRightWidth: 0,
     borderBottomWidth: 0,
-    borderTopLeftRadius: 16
+    borderTopLeftRadius: 10
   },
   cornerTR: {
     top: 0,
     right: 0,
     borderLeftWidth: 0,
     borderBottomWidth: 0,
-    borderTopRightRadius: 16
+    borderTopRightRadius: 10
   },
   cornerBL: {
     bottom: 0,
     left: 0,
     borderRightWidth: 0,
     borderTopWidth: 0,
-    borderBottomLeftRadius: 16
+    borderBottomLeftRadius: 10
   },
   cornerBR: {
     bottom: 0,
     right: 0,
     borderLeftWidth: 0,
     borderTopWidth: 0,
-    borderBottomRightRadius: 16
+    borderBottomRightRadius: 10
   },
-  scanLine: {
-    width: '90%',
-    height: 2,
-    backgroundColor: COLORS.primary,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.9,
-    shadowRadius: 6,
-    elevation: 4
+  reticleCenterPlus: {
+    position: 'absolute',
+    top: 128,
+    left: 128,
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: 'rgba(56, 189, 248, 0.6)'
+  },
+  reticleHelperText: {
+    color: 'rgba(255, 255, 255, 0.75)',
+    fontSize: 11,
+    fontWeight: '600',
+    marginTop: 16,
+    textAlign: 'center',
+    letterSpacing: 0.3
   },
   bottomBar: {
     alignItems: 'center',
-    marginBottom: 20
+    marginBottom: Platform.OS === 'ios' ? 34 : 20
   },
   manualButton: {
-    backgroundColor: 'rgba(30, 41, 59, 0.85)',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 14,
+    backgroundColor: 'rgba(15, 23, 42, 0.9)',
     borderWidth: 1,
-    borderColor: COLORS.borderLight
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: 24,
+    paddingVertical: 12,
+    paddingHorizontal: 22,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 6
   },
   manualButtonText: {
-    color: COLORS.textPrimary,
-    fontSize: 14,
-    fontWeight: '600'
+    color: '#F8FAFC',
+    fontSize: 13,
+    fontWeight: '700'
   },
   manualModal: {
     position: 'absolute',
-    bottom: 30,
-    left: 20,
-    right: 20,
-    backgroundColor: COLORS.bgCard,
-    padding: 20,
-    borderRadius: 18,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: COLORS.bgCardElevated,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
     borderWidth: 1,
-    borderColor: COLORS.borderLight,
+    borderColor: COLORS.borderCard,
+    padding: 24,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
+    shadowOffset: { width: 0, height: -6 },
     shadowOpacity: 0.5,
-    shadowRadius: 16,
-    elevation: 10
+    shadowRadius: 14,
+    elevation: 12
   },
   manualTitle: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 17,
+    fontWeight: '800',
     color: COLORS.textPrimary,
     marginBottom: 4
   },
   manualHelp: {
     fontSize: 12,
     color: COLORS.textSecondary,
-    marginBottom: 10
+    marginBottom: 14
   },
   manualInput: {
     backgroundColor: COLORS.bgInput,
-    borderColor: COLORS.borderLight,
     borderWidth: 1,
-    borderRadius: 10,
-    color: COLORS.textPrimary,
-    fontSize: 13,
+    borderColor: COLORS.borderLight,
+    borderRadius: 12,
     padding: 12,
-    minHeight: 70,
+    fontSize: 13,
+    color: COLORS.textPrimary,
+    minHeight: 80,
     textAlignVertical: 'top',
-    marginBottom: 14
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    marginBottom: 16
   },
   manualActionRow: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 10
+    gap: 12
   },
   manualCancelBtn: {
-    paddingVertical: 10,
-    paddingHorizontal: 16
+    flex: 1,
+    backgroundColor: COLORS.bgCardHover,
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: 'center'
   },
   manualCancelText: {
-    color: COLORS.textMuted,
-    fontWeight: '600'
+    color: COLORS.textSecondary,
+    fontWeight: '700',
+    fontSize: 14
   },
   manualSubmitBtn: {
+    flex: 2,
     backgroundColor: COLORS.primary,
-    paddingVertical: 10,
-    paddingHorizontal: 18,
-    borderRadius: 10
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: 'center'
+  },
+  manualSubmitDisabled: {
+    opacity: 0.5
   },
   manualSubmitText: {
-    color: '#FFF',
-    fontWeight: '700'
+    color: '#FFFFFF',
+    fontWeight: '800',
+    fontSize: 14
   }
 });
