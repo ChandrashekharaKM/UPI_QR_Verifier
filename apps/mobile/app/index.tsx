@@ -9,11 +9,18 @@ import {
   Platform
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
-import type { VerificationResult } from '@upi-verifier/core';
+import {
+  verifyQrPayload,
+  describeQrIntent,
+  type VerificationResult,
+  type QrIntentDescription
+} from '@upi-verifier/core';
 import { COLORS, getRiskColor, getRiskBgColor } from '../lib/theme';
-import { getScanHistory } from '../lib/storage';
+import { getScanHistory, saveScanToHistory } from '../lib/storage';
 import { DisclaimerBanner } from '../components/DisclaimerBanner';
 import { SAFETY_TIPS, SafetyTipCard } from '../components/SafetyTipCard';
+import { HalfScreenCamera } from '../components/HalfScreenCamera';
+import { LensScanPromptModal } from '../components/LensScanPromptModal';
 
 const DEMO_PAYLOADS = [
   {
@@ -34,10 +41,17 @@ export default function HomeScreen() {
   const router = useRouter();
   const [recentScans, setRecentScans] = useState<VerificationResult[]>([]);
   const [quickInput, setQuickInput] = useState('');
+  const [cameraPaused, setCameraPaused] = useState(false);
+  const [scannedResult, setScannedResult] = useState<{
+    rawPayload: string;
+    verification: VerificationResult;
+    intent: QrIntentDescription;
+  } | null>(null);
 
   useFocusEffect(
     useCallback(() => {
       let isMounted = true;
+      setCameraPaused(false);
       void getScanHistory().then((history) => {
         if (isMounted) {
           setRecentScans(history.slice(0, 3));
@@ -45,9 +59,25 @@ export default function HomeScreen() {
       });
       return () => {
         isMounted = false;
+        setCameraPaused(true);
       };
     }, [])
   );
+
+  const handleLiveQrDetected = (data: string) => {
+    if (!data || cameraPaused) return;
+    setCameraPaused(true);
+
+    const verified = verifyQrPayload(data, { isOffline: true });
+    const intent = describeQrIntent(verified);
+    void saveScanToHistory(verified);
+
+    setScannedResult({
+      rawPayload: data,
+      verification: verified,
+      intent
+    });
+  };
 
   const handleVerifyQuickInput = () => {
     const trimmed = quickInput.trim();
@@ -68,61 +98,37 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      {/* Hero Header */}
-      <View style={styles.heroSection}>
-        <View style={styles.qrLogoBadge}>
-          <Text style={styles.qrLogoIcon}>⛶</Text>
+      {/* Google Lens-Style Half-Screen Live Camera */}
+      <View style={styles.cameraSection}>
+        <HalfScreenCamera
+          onQrDetected={handleLiveQrDetected}
+          isPaused={cameraPaused || Boolean(scannedResult)}
+          height={320}
+        />
+      </View>
+
+      {/* Gallery Upload Action (Single prominent button like Google Lens) */}
+      <TouchableOpacity
+        style={styles.galleryButton}
+        activeOpacity={0.88}
+        onPress={() => router.push('/upload')}
+        accessibilityLabel="Upload Image from Gallery"
+      >
+        <View style={styles.iconCircleGallery}>
+          <Text style={styles.buttonIcon}>🖼️</Text>
         </View>
-        <Text style={styles.heroTitle}>Verify Before You Authorize</Text>
-        <Text style={styles.heroSubtitle}>
-          Scan shop standees, bill QRs, and UPI links before paying to detect phishing handles, fake refunds, and tampered QR stickers.
-        </Text>
-      </View>
-
-      {/* Primary Action Cards */}
-      <View style={styles.actionContainer}>
-        <TouchableOpacity
-          style={styles.primaryButton}
-          activeOpacity={0.88}
-          onPress={() => router.push('/scan')}
-        >
-          <View style={styles.iconCirclePrimary}>
-            <Text style={styles.buttonIcon}>📷</Text>
-          </View>
-          <View style={styles.buttonTextGroup}>
-            <View style={styles.badgeRow}>
-              <Text style={styles.primaryButtonText}>Scan QR Code</Text>
-              <View style={styles.pillTagPrimary}>
-                <Text style={styles.pillTagPrimaryText}>LIVE CAMERA</Text>
-              </View>
+        <View style={styles.buttonTextGroup}>
+          <View style={styles.badgeRow}>
+            <Text style={styles.galleryButtonText}>Upload Image from Gallery</Text>
+            <View style={styles.pillTagGallery}>
+              <Text style={styles.pillTagGalleryText}>PHOTO / GALLERY</Text>
             </View>
-            <Text style={styles.buttonSubtext}>
-              Real-time camera viewfinder with multi-QR detection
-            </Text>
           </View>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.secondaryButton}
-          activeOpacity={0.88}
-          onPress={() => router.push('/upload')}
-        >
-          <View style={styles.iconCircleSecondary}>
-            <Text style={styles.buttonIcon}>🖼️</Text>
-          </View>
-          <View style={styles.buttonTextGroup}>
-            <View style={styles.badgeRow}>
-              <Text style={styles.secondaryButtonText}>Upload Image</Text>
-              <View style={styles.pillTagSecondary}>
-                <Text style={styles.pillTagSecondaryText}>STAND-IN / PHOTO</Text>
-              </View>
-            </View>
-            <Text style={styles.buttonSubtext}>
-              Inspect saved screenshot, laminated photo, or invoice
-            </Text>
-          </View>
-        </TouchableOpacity>
-      </View>
+          <Text style={styles.buttonSubtext}>
+            Inspect saved photos, laminated counter standees, or invoices
+          </Text>
+        </View>
+      </TouchableOpacity>
 
       {/* Quick Text / Intent Tester */}
       <View style={styles.quickTestCard}>
@@ -297,6 +303,29 @@ export default function HomeScreen() {
           <SafetyTipCard key={tip.id} tip={tip} />
         ))}
       </View>
+
+      {/* Google Lens Instant Scan & Payment Prompt */}
+      {scannedResult ? (
+        <LensScanPromptModal
+          visible={Boolean(scannedResult)}
+          rawPayload={scannedResult.rawPayload}
+          verification={scannedResult.verification}
+          intent={scannedResult.intent}
+          onDismiss={() => {
+            setScannedResult(null);
+            setCameraPaused(false);
+          }}
+          onViewDetails={() => {
+            const raw = scannedResult.rawPayload;
+            setScannedResult(null);
+            setCameraPaused(false);
+            router.push({
+              pathname: '/result',
+              params: { rawPayload: raw }
+            });
+          }}
+        />
+      ) : null}
     </ScrollView>
   );
 }
@@ -377,62 +406,38 @@ const styles = StyleSheet.create({
     lineHeight: 19,
     maxWidth: 350
   },
-  actionContainer: {
-    gap: 12,
-    marginVertical: 14
+  cameraSection: {
+    marginVertical: 10
   },
-  primaryButton: {
-    backgroundColor: '#1E3A8A',
-    borderColor: '#3B82F6',
+  galleryButton: {
+    backgroundColor: COLORS.bgCard,
+    borderColor: '#38BDF8',
     borderWidth: 1.5,
     borderRadius: 16,
-    paddingVertical: 16,
-    paddingHorizontal: 18,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: '#2563EB',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.35,
-    shadowRadius: 12,
-    elevation: 6
+    marginBottom: 14,
+    shadowColor: '#38BDF8',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 4
   },
-  iconCirclePrimary: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#2563EB',
+  iconCircleGallery: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(56, 189, 248, 0.15)',
+    borderWidth: 1,
+    borderColor: '#38BDF8',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 14
   },
-  secondaryButton: {
-    backgroundColor: COLORS.bgCard,
-    borderColor: COLORS.borderCard,
-    borderWidth: 1.5,
-    borderRadius: 16,
-    paddingVertical: 16,
-    paddingHorizontal: 18,
-    flexDirection: 'row',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 3
-  },
-  iconCircleSecondary: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: COLORS.bgCardElevated,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)'
-  },
   buttonIcon: {
-    fontSize: 24
+    fontSize: 22
   },
   buttonTextGroup: {
     flex: 1
@@ -443,38 +448,21 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 2
   },
-  primaryButtonText: {
-    fontSize: 17,
+  galleryButtonText: {
+    fontSize: 16,
     fontWeight: '800',
-    color: '#FFFFFF'
+    color: '#F8FAFC'
   },
-  secondaryButtonText: {
-    fontSize: 17,
-    fontWeight: '800',
-    color: COLORS.textPrimary
-  },
-  pillTagPrimary: {
-    backgroundColor: 'rgba(56, 189, 248, 0.25)',
+  pillTagGallery: {
+    backgroundColor: 'rgba(56, 189, 248, 0.15)',
+    borderRadius: 6,
     paddingHorizontal: 7,
-    paddingVertical: 2,
-    borderRadius: 4
+    paddingVertical: 2
   },
-  pillTagPrimaryText: {
-    color: '#93C5FD',
+  pillTagGalleryText: {
     fontSize: 9,
     fontWeight: '800',
-    letterSpacing: 0.5
-  },
-  pillTagSecondary: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-    borderRadius: 4
-  },
-  pillTagSecondaryText: {
-    color: COLORS.textSecondary,
-    fontSize: 9,
-    fontWeight: '800',
+    color: '#38BDF8',
     letterSpacing: 0.5
   },
   buttonSubtext: {
