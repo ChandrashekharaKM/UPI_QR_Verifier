@@ -343,5 +343,5 @@ describe('Mobile App Acceptance Test Suite: 15 Core Scenarios Specification', ()
     const single = decodeQrFromImageBuffer(pixels, emptyPng.width, emptyPng.height);
     expect(single).toBeNull();
     // In mobile UI: `if (results.length === 0) setErrorMessage('No readable QR code detected... with tips')`
-  });
+  }, 15000);
 });

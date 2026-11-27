@@ -8,6 +8,7 @@ build/
 coverage/
 .turbo/
 *.sqlite*
+apps/mobile/android/
 packages/core/test/*.js
 packages/core/test/*.d.ts
 packages/core/test/*.map

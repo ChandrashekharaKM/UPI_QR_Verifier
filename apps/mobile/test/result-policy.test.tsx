@@ -292,4 +292,36 @@ describe('Mobile Result Screen Policy Rules Suite (React Native Testing)', () =>
       expect(mockReplace).toHaveBeenCalledWith('/');
     });
   });
+
+  describe('Policy 6: Instant Pop-Up Risk Counter & Plain-English Intent Alert', () => {
+    it('pops up alert stating exact risk count and what the QR is saying for clean merchant', async () => {
+      currentPayload = 'upi://pay?pa=store@okhdfcbank&pn=Fresh+Mart&mc=5411&am=350.00&cu=INR';
+
+      let renderer: TestRenderer.ReactTestRenderer;
+      await act(async () => {
+        renderer = TestRenderer.create(<ResultScreen />);
+      });
+
+      const allText = collectAllText(renderer!.toJSON()).join(' ');
+      expect(allText).toContain('0 RISKS DETECTED');
+      expect(allText).toContain('WHAT THIS QR IS SAYING:');
+      expect(allText).toContain('paying ₹350.00 to Fresh Mart');
+    });
+
+    it('pops up alert stating risk count and deception alert for refund scam trap', async () => {
+      currentPayload = 'upi://pay?pa=refund.dept99@paytm&pn=Electricity+Refund&am=25000&tn=Electricity+Bill+Refund+Claim';
+
+      let renderer: TestRenderer.ReactTestRenderer;
+      await act(async () => {
+        renderer = TestRenderer.create(<ResultScreen />);
+      });
+
+      const allText = collectAllText(renderer!.toJSON()).join(' ');
+      expect(allText).toContain('RISKS DETECTED');
+      expect(allText).toContain('WHAT THIS QR IS SAYING:');
+      expect(allText).toContain('CRITICAL REFUND / REWARD SCAM');
+      expect(allText).toContain('DECEPTION TRAP: You are SENDING ₹25000, NOT receiving money');
+      expect(allText).toContain('YOU NEVER SCAN A QR CODE OR ENTER YOUR PIN TO RECEIVE MONEY');
+    });
+  });
 });

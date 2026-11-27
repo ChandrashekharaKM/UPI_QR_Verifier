@@ -15,7 +15,9 @@ import * as Haptics from 'expo-haptics';
 import {
   verifyQrPayload,
   type VerificationResult,
-  type CheckAuditItem
+  type CheckAuditItem,
+  describeQrIntent,
+  type QrIntentDescription
 } from '@upi-verifier/core';
 import { COLORS, getRiskColor } from '../lib/theme';
 import { saveScanToHistory } from '../lib/storage';
@@ -23,6 +25,7 @@ import { fetchVpaReputation } from '../lib/api-client';
 import { RiskGauge } from '../components/RiskGauge';
 import { ReasonCard } from '../components/ReasonCard';
 import { DisclaimerBanner } from '../components/DisclaimerBanner';
+import { QrRiskAlertModal } from '../components/QrRiskAlertModal';
 
 export default function ResultScreen() {
   const router = useRouter();
@@ -33,6 +36,7 @@ export default function ResultScreen() {
   const [offlineNotice, setOfflineNotice] = useState<string | null>(null);
   const [isEnriching, setIsEnriching] = useState(false);
   const [showHighRiskModal, setShowHighRiskModal] = useState(false);
+  const [showRiskAlertModal, setShowRiskAlertModal] = useState(true);
   const [copied, setCopied] = useState(false);
   const [copiedVpa, setCopiedVpa] = useState(false);
 
@@ -118,6 +122,7 @@ export default function ResultScreen() {
 
   const riskColor = getRiskColor(verification.category);
   const isHighRisk = verification.category === 'HIGH_RISK';
+  const qrIntent = verification ? describeQrIntent(verification) : null;
 
   // Extract parsed fields safely
   const upiFields =
@@ -234,6 +239,59 @@ export default function ResultScreen() {
           <Text style={styles.offlineIcon}>📡</Text>
           <Text style={styles.offlineText}>{offlineNotice}</Text>
         </View>
+      ) : null}
+
+      {/* Pop-Up Risk Summary & QR Intent Decoder Button */}
+      {qrIntent ? (
+        <TouchableOpacity
+          style={[
+            styles.intentSummaryBannerBtn,
+            {
+              borderColor:
+                qrIntent.riskLevel === 'HIGH_RISK'
+                  ? COLORS.highRisk
+                  : qrIntent.riskLevel === 'SUSPICIOUS'
+                    ? COLORS.suspicious
+                    : COLORS.safe
+            }
+          ]}
+          activeOpacity={0.85}
+          onPress={() => setShowRiskAlertModal(true)}
+        >
+          <View style={styles.intentSummaryRow}>
+            <Text style={styles.intentSummaryIcon}>
+              {qrIntent.riskLevel === 'HIGH_RISK' ? '🚨' : qrIntent.riskLevel === 'SUSPICIOUS' ? '⚠️' : '📢'}
+            </Text>
+            <View style={styles.intentSummaryTextCol}>
+              <View style={styles.intentSummaryHeaderLine}>
+                <Text
+                  style={[
+                    styles.intentSummaryRiskBadge,
+                    {
+                      color:
+                        qrIntent.riskLevel === 'HIGH_RISK'
+                          ? COLORS.highRisk
+                          : qrIntent.riskLevel === 'SUSPICIOUS'
+                            ? COLORS.suspicious
+                            : COLORS.safe
+                    }
+                  ]}
+                >
+                  {qrIntent.totalRisks === 0
+                    ? '0 RISKS DETECTED'
+                    : qrIntent.totalRisks === 1
+                      ? '1 RISK DETECTED'
+                      : `${qrIntent.totalRisks} RISKS DETECTED`}
+                </Text>
+                <Text style={styles.intentSummaryTapHint}>Tap to view popup alert</Text>
+              </View>
+              <Text style={styles.intentSummaryHeadline} numberOfLines={1}>
+                {qrIntent.headline}
+              </Text>
+            </View>
+            <Text style={styles.intentSummaryArrow}>➔</Text>
+          </View>
+        </TouchableOpacity>
       ) : null}
 
       {/* Main Score Gauge */}
@@ -801,6 +859,17 @@ export default function ResultScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Instant QR Risk & Intent Pop-up Alert Modal */}
+      {qrIntent ? (
+        <QrRiskAlertModal
+          visible={showRiskAlertModal}
+          intent={qrIntent}
+          onDismiss={() => setShowRiskAlertModal(false)}
+          onAbortPayment={() => router.replace('/')}
+          onCopyVpa={(vpa) => handleCopyVpa(vpa)}
+        />
+      ) : null}
     </ScrollView>
   );
 }
@@ -1691,5 +1760,57 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     fontSize: 12,
     lineHeight: 17
+  },
+  intentSummaryBannerBtn: {
+    backgroundColor: '#131D33',
+    borderRadius: 14,
+    borderWidth: 1.5,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4
+  },
+  intentSummaryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12
+  },
+  intentSummaryIcon: {
+    fontSize: 24
+  },
+  intentSummaryTextCol: {
+    flex: 1
+  },
+  intentSummaryHeaderLine: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 2
+  },
+  intentSummaryRiskBadge: {
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase'
+  },
+  intentSummaryTapHint: {
+    fontSize: 10,
+    color: '#64748B',
+    fontWeight: '600'
+  },
+  intentSummaryHeadline: {
+    fontSize: 14,
+    color: '#F8FAFC',
+    fontWeight: '700',
+    lineHeight: 19
+  },
+  intentSummaryArrow: {
+    fontSize: 16,
+    color: '#94A3B8',
+    fontWeight: '700'
   }
 });
