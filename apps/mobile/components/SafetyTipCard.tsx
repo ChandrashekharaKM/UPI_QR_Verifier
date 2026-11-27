@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { COLORS } from '../lib/theme';
+import { useTheme } from '../lib/ThemeContext';
 
 export interface SafetyTip {
   id: string;
@@ -43,12 +44,24 @@ export const SAFETY_TIPS: SafetyTip[] = [
 ];
 
 export const SafetyTipCard: React.FC<{ tip: SafetyTip }> = ({ tip }) => {
+  const { colors, isLight } = useTheme();
+
   return (
-    <View style={styles.card}>
+    <View
+      style={[
+        styles.card,
+        isLight && {
+          backgroundColor: '#FFFFFF',
+          borderColor: '#E2E8F0',
+          shadowColor: '#000',
+          shadowOpacity: 0.05
+        }
+      ]}
+    >
       <Text style={styles.icon}>{tip.icon}</Text>
       <View style={styles.content}>
-        <Text style={styles.title}>{tip.title}</Text>
-        <Text style={styles.desc}>{tip.description}</Text>
+        <Text style={[styles.title, isLight && { color: colors.textPrimary }]}>{tip.title}</Text>
+        <Text style={[styles.desc, isLight && { color: colors.textSecondary }]}>{tip.description}</Text>
       </View>
     </View>
   );

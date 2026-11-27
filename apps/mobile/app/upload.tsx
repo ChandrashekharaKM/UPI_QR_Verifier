@@ -16,11 +16,13 @@ import * as Clipboard from 'expo-clipboard';
 import { scanFromURLAsync, Camera } from 'expo-camera';
 import { decodeAllQrFromFile } from '../lib/web-qr';
 import { COLORS } from '../lib/theme';
+import { useTheme } from '../lib/ThemeContext';
 import { DisclaimerBanner } from '../components/DisclaimerBanner';
 import { MultipleQrModal } from '../components/MultipleQrModal';
 
 export default function UploadScreen() {
   const router = useRouter();
+  const { colors, isLight } = useTheme();
   const [selectedUri, setSelectedUri] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -161,10 +163,23 @@ export default function UploadScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.card}>
-        <Text style={styles.title}>Inspect Image or Standee Photo</Text>
-        <Text style={styles.subtitle}>
+    <ScrollView
+      style={[styles.container, { backgroundColor: colors.bgPrimary }]}
+      contentContainerStyle={styles.content}
+    >
+      <View
+        style={[
+          styles.card,
+          isLight && {
+            backgroundColor: '#FFFFFF',
+            borderColor: '#E2E8F0',
+            shadowColor: '#000',
+            shadowOpacity: 0.05
+          }
+        ]}
+      >
+        <Text style={[styles.title, isLight && { color: colors.textPrimary }]}>Inspect Image or Standee Photo</Text>
+        <Text style={[styles.subtitle, isLight && { color: colors.textSecondary }]}>
           Select a saved QR photo, screenshot, bill invoice, or paste raw intent text.
         </Text>
 
@@ -173,19 +188,23 @@ export default function UploadScreen() {
             <Image source={{ uri: selectedUri }} style={styles.previewImage} resizeMode="contain" />
           </View>
         ) : (
-          <TouchableOpacity style={styles.dropZone} activeOpacity={0.82} onPress={pickImage}>
-            <View style={styles.dropIconCircle}>
+          <TouchableOpacity
+            style={[styles.dropZone, isLight && { backgroundColor: '#F8FAFC', borderColor: colors.primary }]}
+            activeOpacity={0.82}
+            onPress={pickImage}
+          >
+            <View style={[styles.dropIconCircle, isLight && { backgroundColor: '#E0F2FE' }]}>
               <Text style={styles.dropIcon}>📂</Text>
             </View>
-            <Text style={styles.dropText}>Tap to Select QR Image</Text>
-            <Text style={styles.dropSubtext}>Browse Photos, Files, or Downloads (PNG, JPG, WEBP)</Text>
+            <Text style={[styles.dropText, isLight && { color: colors.textPrimary }]}>Tap to Select QR Image</Text>
+            <Text style={[styles.dropSubtext, isLight && { color: colors.textSecondary }]}>Browse Photos, Files, or Downloads (PNG, JPG, WEBP)</Text>
           </TouchableOpacity>
         )}
 
         {isProcessing ? (
           <View style={styles.processingBox}>
-            <ActivityIndicator size="small" color={COLORS.primaryLight} />
-            <Text style={styles.processingText}>Executing multi-pass contrast & TLV extraction...</Text>
+            <ActivityIndicator size="small" color={colors.primary} />
+            <Text style={[styles.processingText, isLight && { color: colors.primary }]}>Executing multi-pass contrast & TLV extraction...</Text>
           </View>
         ) : null}
 
@@ -207,26 +226,50 @@ export default function UploadScreen() {
         ) : null}
 
         {selectedUri && !isProcessing ? (
-          <TouchableOpacity style={styles.retryButton} activeOpacity={0.8} onPress={pickImage}>
-            <Text style={styles.retryButtonText}>Choose Different Photo</Text>
+          <TouchableOpacity
+            style={[styles.retryButton, isLight && { backgroundColor: '#F1F5F9', borderColor: '#CBD5E1' }]}
+            activeOpacity={0.8}
+            onPress={pickImage}
+          >
+            <Text style={[styles.retryButtonText, isLight && { color: colors.textPrimary }]}>Choose Different Photo</Text>
           </TouchableOpacity>
         ) : null}
       </View>
 
       {/* Manual Payload Paste Card */}
-      <View style={styles.manualCard}>
+      <View
+        style={[
+          styles.manualCard,
+          isLight && {
+            backgroundColor: '#FFFFFF',
+            borderColor: '#E2E8F0',
+            shadowColor: '#000',
+            shadowOpacity: 0.05
+          }
+        ]}
+      >
         <View style={styles.manualHeader}>
-          <Text style={styles.manualTitle}>Or Paste UPI Intent Link</Text>
-          <TouchableOpacity style={styles.pasteBtn} onPress={handlePasteClipboard}>
-            <Text style={styles.pasteBtnText}>📋 Paste Clipboard</Text>
+          <Text style={[styles.manualTitle, isLight && { color: colors.textPrimary }]}>Or Paste UPI Intent Link</Text>
+          <TouchableOpacity
+            style={[styles.pasteBtn, isLight && { backgroundColor: '#E0F2FE' }]}
+            onPress={handlePasteClipboard}
+          >
+            <Text style={[styles.pasteBtnText, isLight && { color: colors.primary }]}>📋 Paste Clipboard</Text>
           </TouchableOpacity>
         </View>
         <TextInput
-          style={styles.manualInput}
+          style={[
+            styles.manualInput,
+            isLight && {
+              backgroundColor: '#F1F5F9',
+              borderColor: '#CBD5E1',
+              color: colors.textPrimary
+            }
+          ]}
           value={manualText}
           onChangeText={setManualText}
           placeholder="upi://pay?pa=shop@bank&pn=Merchant... or BharatQR 000201..."
-          placeholderTextColor={COLORS.textMuted}
+          placeholderTextColor={isLight ? '#94A3B8' : COLORS.textMuted}
           autoCapitalize="none"
           autoCorrect={false}
           multiline

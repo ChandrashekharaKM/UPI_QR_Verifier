@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { COLORS } from '../lib/theme';
+import { useTheme } from '../lib/ThemeContext';
 import { submitScamReport } from '../lib/api-client';
 
 const REASON_OPTIONS = [
@@ -22,6 +23,7 @@ const REASON_OPTIONS = [
 
 export default function ReportScreen() {
   const params = useLocalSearchParams<{ vpa?: string }>();
+  const { colors, isLight } = useTheme();
 
   const [vpa, setVpa] = useState(params.vpa ?? '');
   const [reason, setReason] = useState<string>('fake_support');
@@ -61,25 +63,45 @@ export default function ReportScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.card}>
+    <ScrollView
+      style={[styles.container, { backgroundColor: colors.bgPrimary }]}
+      contentContainerStyle={styles.content}
+    >
+      <View
+        style={[
+          styles.card,
+          isLight && {
+            backgroundColor: '#FFFFFF',
+            borderColor: '#E2E8F0',
+            shadowColor: '#000',
+            shadowOpacity: 0.05
+          }
+        ]}
+      >
         <View style={styles.badgeTop}>
           <Text style={styles.badgeTopText}>COMMUNITY THREAT INTELLIGENCE</Text>
         </View>
-        <Text style={styles.title}>Submit Scam Intelligence</Text>
-        <Text style={styles.subtitle}>
+        <Text style={[styles.title, isLight && { color: colors.textPrimary }]}>Submit Scam Intelligence</Text>
+        <Text style={[styles.subtitle, isLight && { color: colors.textSecondary }]}>
           Help protect other users by submitting verified fraudulent UPI handles to the decay-weighted community database.
         </Text>
 
         {/* VPA Input */}
         <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>UPI ID / VPA to Report *</Text>
+          <Text style={[styles.inputLabel, isLight && { color: colors.textPrimary }]}>UPI ID / VPA to Report *</Text>
           <TextInput
-            style={styles.textInput}
+            style={[
+              styles.textInput,
+              isLight && {
+                backgroundColor: '#F1F5F9',
+                borderColor: '#CBD5E1',
+                color: colors.textPrimary
+              }
+            ]}
             value={vpa}
             onChangeText={setVpa}
             placeholder="e.g. sbi.refund.desk@ybl"
-            placeholderTextColor={COLORS.textMuted}
+            placeholderTextColor={isLight ? '#94A3B8' : COLORS.textMuted}
             autoCapitalize="none"
             autoCorrect={false}
           />
@@ -87,13 +109,15 @@ export default function ReportScreen() {
 
         {/* Reason Selector */}
         <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Select Scam Category *</Text>
+          <Text style={[styles.inputLabel, isLight && { color: colors.textPrimary }]}>Select Scam Category *</Text>
           {REASON_OPTIONS.map((opt) => (
             <TouchableOpacity
               key={opt.id}
               style={[
                 styles.reasonChip,
-                reason === opt.id && styles.reasonChipSelected
+                isLight && { backgroundColor: '#F8FAFC', borderColor: '#E2E8F0' },
+                reason === opt.id && styles.reasonChipSelected,
+                reason === opt.id && isLight && { backgroundColor: '#EFF6FF', borderColor: colors.primary }
               ]}
               activeOpacity={0.8}
               onPress={() => setReason(opt.id)}
@@ -101,7 +125,9 @@ export default function ReportScreen() {
               <Text
                 style={[
                   styles.reasonChipText,
-                  reason === opt.id && styles.reasonChipTextSelected
+                  isLight && { color: colors.textSecondary },
+                  reason === opt.id && styles.reasonChipTextSelected,
+                  reason === opt.id && isLight && { color: colors.primary }
                 ]}
               >
                 {opt.label}
@@ -112,13 +138,21 @@ export default function ReportScreen() {
 
         {/* Notes Input */}
         <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>Incident Evidence / Notes (Optional)</Text>
+          <Text style={[styles.inputLabel, isLight && { color: colors.textPrimary }]}>Incident Evidence / Notes (Optional)</Text>
           <TextInput
-            style={[styles.textInput, styles.textArea]}
+            style={[
+              styles.textInput,
+              styles.textArea,
+              isLight && {
+                backgroundColor: '#F1F5F9',
+                borderColor: '#CBD5E1',
+                color: colors.textPrimary
+              }
+            ]}
             value={note}
             onChangeText={setNote}
             placeholder="Describe how the QR was encountered (e.g. sticker pasted over stall, SMS link, fake OLX buyer)..."
-            placeholderTextColor={COLORS.textMuted}
+            placeholderTextColor={isLight ? '#94A3B8' : COLORS.textMuted}
             multiline
             numberOfLines={4}
           />

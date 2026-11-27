@@ -1,17 +1,28 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useTheme } from '../lib/ThemeContext';
 
 interface DisclaimerBannerProps {
   customText?: string;
 }
 
 export const DisclaimerBanner: React.FC<DisclaimerBannerProps> = ({ customText }) => {
+  const { isLight } = useTheme();
+
   return (
-    <View style={styles.banner}>
+    <View
+      style={[
+        styles.banner,
+        isLight && {
+          backgroundColor: '#FFFBEB',
+          borderColor: '#F59E0B'
+        }
+      ]}
+    >
       <Text style={styles.icon}>⚠️</Text>
       <View style={styles.textContainer}>
-        <Text style={styles.title}>RISK-WARNING ADVISORY ONLY</Text>
-        <Text style={styles.body}>
+        <Text style={[styles.title, isLight && { color: '#B45309' }]}>RISK-WARNING ADVISORY ONLY</Text>
+        <Text style={[styles.body, isLight && { color: '#78350F' }]}>
           {customText ??
             'This tool provides heuristic risk estimation before payment. It is NEVER a guarantee of safety. Always confirm the receiver identity independently before authorizing any UPI payment.'}
         </Text>

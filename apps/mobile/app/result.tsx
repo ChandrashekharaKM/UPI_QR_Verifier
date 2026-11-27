@@ -20,6 +20,7 @@ import {
   type QrIntentDescription
 } from '@upi-verifier/core';
 import { COLORS, getRiskColor } from '../lib/theme';
+import { useTheme } from '../lib/ThemeContext';
 import { saveScanToHistory } from '../lib/storage';
 import { fetchVpaReputation } from '../lib/api-client';
 import { RiskGauge } from '../components/RiskGauge';
@@ -31,6 +32,7 @@ import { buildUpiPaymentUri, launchPaymentApp } from '../lib/payment-apps';
 
 export default function ResultScreen() {
   const router = useRouter();
+  const { colors, isLight } = useTheme();
   const params = useLocalSearchParams<{ rawPayload?: string }>();
   const rawPayload = params.rawPayload ?? '';
 
@@ -234,7 +236,10 @@ export default function ResultScreen() {
   const unranChecks = auditItems.filter((c: CheckAuditItem) => !c.ran);
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView
+      style={[styles.container, { backgroundColor: colors.bgPrimary }]}
+      contentContainerStyle={styles.content}
+    >
       {/* Offline Degradation Banner */}
       {offlineNotice ? (
         <View style={styles.offlineNotice}>

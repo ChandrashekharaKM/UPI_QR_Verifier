@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import type { ReasonItem } from '@upi-verifier/core';
 import { COLORS, getSeverityColor } from '../lib/theme';
+import { useTheme } from '../lib/ThemeContext';
 
 interface ReasonCardProps {
   reason: ReasonItem;
@@ -9,16 +10,27 @@ interface ReasonCardProps {
 }
 
 export const ReasonCard: React.FC<ReasonCardProps> = ({ reason, rank }) => {
-  const sevColor = getSeverityColor(reason.severity);
+  const { colors, isLight } = useTheme();
+  const sevColor = getSeverityColor(reason.severity, colors);
 
   return (
-    <View style={styles.card}>
+    <View
+      style={[
+        styles.card,
+        isLight && {
+          backgroundColor: '#FFFFFF',
+          borderColor: '#E2E8F0',
+          shadowColor: '#000',
+          shadowOpacity: 0.05
+        }
+      ]}
+    >
       <View style={styles.header}>
         <View style={styles.rankContainer}>
-          <View style={styles.rankBadge}>
-            <Text style={styles.rankText}>#{rank}</Text>
+          <View style={[styles.rankBadge, isLight && { backgroundColor: '#E0F2FE' }]}>
+            <Text style={[styles.rankText, isLight && { color: colors.primary }]}>#{rank}</Text>
           </View>
-          <Text style={styles.title} numberOfLines={2}>
+          <Text style={[styles.title, isLight && { color: colors.textPrimary }]} numberOfLines={2}>
             {reason.title}
           </Text>
         </View>
@@ -27,17 +39,17 @@ export const ReasonCard: React.FC<ReasonCardProps> = ({ reason, rank }) => {
         </View>
       </View>
 
-      <Text style={styles.message}>{reason.message}</Text>
+      <Text style={[styles.message, isLight && { color: colors.textSecondary }]}>{reason.message}</Text>
 
       {reason.evidenceSummary ? (
-        <View style={styles.evidenceContainer}>
-          <Text style={styles.evidenceLabel}>Evidence:</Text>
-          <Text style={styles.evidenceText}>{reason.evidenceSummary}</Text>
+        <View style={[styles.evidenceContainer, isLight && { backgroundColor: '#F1F5F9', borderLeftColor: colors.primary }]}>
+          <Text style={[styles.evidenceLabel, isLight && { color: colors.primary }]}>Evidence:</Text>
+          <Text style={[styles.evidenceText, isLight && { color: colors.textSecondary }]}>{reason.evidenceSummary}</Text>
         </View>
       ) : null}
 
       <View style={styles.footer}>
-        <Text style={styles.impactText}>Impact: +{reason.impact} risk pts</Text>
+        <Text style={[styles.impactText, isLight && { color: colors.textMuted }]}>Impact: +{reason.impact} risk pts</Text>
       </View>
     </View>
   );

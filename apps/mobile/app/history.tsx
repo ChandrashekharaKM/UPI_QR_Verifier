@@ -12,6 +12,7 @@ import {
 import { useRouter } from 'expo-router';
 import type { VerificationResult } from '@upi-verifier/core';
 import { COLORS, getRiskColor, getRiskBgColor } from '../lib/theme';
+import { useTheme } from '../lib/ThemeContext';
 import {
   getScanHistory,
   deleteScanFromHistory,
@@ -20,6 +21,7 @@ import {
 
 export default function HistoryScreen() {
   const router = useRouter();
+  const { colors, isLight } = useTheme();
   const [history, setHistory] = useState<VerificationResult[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -72,18 +74,25 @@ export default function HistoryScreen() {
   });
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView
+      style={[styles.container, { backgroundColor: colors.bgPrimary }]}
+      contentContainerStyle={styles.content}
+    >
       <View style={styles.header}>
         <View>
-          <Text style={styles.title}>Scan Audit Log</Text>
-          <Text style={styles.subtitle}>
+          <Text style={[styles.title, isLight && { color: colors.textPrimary }]}>Scan Audit Log</Text>
+          <Text style={[styles.subtitle, isLight && { color: colors.textMuted }]}>
             {history.length} {history.length === 1 ? 'record' : 'records'} stored locally on device
           </Text>
         </View>
 
         {history.length > 0 ? (
-          <TouchableOpacity style={styles.clearBtn} activeOpacity={0.8} onPress={handleClearAll}>
-            <Text style={styles.clearBtnText}>Clear All</Text>
+          <TouchableOpacity
+            style={[styles.clearBtn, isLight && { backgroundColor: '#FEE2E2', borderColor: '#FECACA' }]}
+            activeOpacity={0.8}
+            onPress={handleClearAll}
+          >
+            <Text style={[styles.clearBtnText, isLight && { color: '#DC2626' }]}>Clear All</Text>
           </TouchableOpacity>
         ) : null}
       </View>
@@ -91,34 +100,43 @@ export default function HistoryScreen() {
       {history.length > 0 ? (
         <View style={styles.searchRow}>
           <TextInput
-            style={styles.searchInput}
+            style={[
+              styles.searchInput,
+              isLight && {
+                backgroundColor: '#FFFFFF',
+                borderColor: '#CBD5E1',
+                color: colors.textPrimary
+              }
+            ]}
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholder="Search by Payee, VPA, or text..."
-            placeholderTextColor={COLORS.textMuted}
+            placeholderTextColor={isLight ? '#94A3B8' : COLORS.textMuted}
           />
         </View>
       ) : null}
 
       {history.length === 0 ? (
-        <View style={styles.emptyCard}>
-          <View style={styles.emptyIconCircle}>
+        <View style={[styles.emptyCard, isLight && { backgroundColor: '#FFFFFF', borderColor: '#E2E8F0' }]}>
+          <View style={[styles.emptyIconCircle, isLight && { backgroundColor: '#F1F5F9' }]}>
             <Text style={styles.emptyIcon}>📋</Text>
           </View>
-          <Text style={styles.emptyTitle}>No Scan Records</Text>
-          <Text style={styles.emptyText}>
+          <Text style={[styles.emptyTitle, isLight && { color: colors.textPrimary }]}>No Scan Records</Text>
+          <Text style={[styles.emptyText, isLight && { color: colors.textSecondary }]}>
             Scans you inspect will appear here. No personal payment data or logs ever leave your device.
           </Text>
         </View>
       ) : filteredHistory.length === 0 ? (
-        <View style={styles.emptyCard}>
-          <Text style={styles.emptyTitle}>No Matching Scans</Text>
-          <Text style={styles.emptyText}>No inspection history matches "{searchQuery}".</Text>
+        <View style={[styles.emptyCard, isLight && { backgroundColor: '#FFFFFF', borderColor: '#E2E8F0' }]}>
+          <Text style={[styles.emptyTitle, isLight && { color: colors.textPrimary }]}>No Matching Scans</Text>
+          <Text style={[styles.emptyText, isLight && { color: colors.textSecondary }]}>
+            No inspection history matches "{searchQuery}".
+          </Text>
         </View>
       ) : (
         filteredHistory.map((item) => {
-          const riskColor = getRiskColor(item.category);
-          const riskBg = getRiskBgColor(item.category);
+          const riskColor = getRiskColor(item.category, colors);
+          const riskBg = getRiskBgColor(item.category, colors);
 
           const isUpiOrEmv =
             (item.parsed.kind === 'upi' || item.parsed.kind === 'emv') &&
@@ -129,7 +147,18 @@ export default function HistoryScreen() {
           const amount = isUpiOrEmv && item.parsed.fields.upi.am ? `₹${item.parsed.fields.upi.am}` : null;
 
           return (
-            <View key={item.evaluatedAt} style={styles.itemCard}>
+            <View
+              key={item.evaluatedAt}
+              style={[
+                styles.itemCard,
+                isLight && {
+                  backgroundColor: '#FFFFFF',
+                  borderColor: '#E2E8F0',
+                  shadowColor: '#000',
+                  shadowOpacity: 0.05
+                }
+              ]}
+            >
               <TouchableOpacity
                 style={styles.itemMain}
                 activeOpacity={0.75}
@@ -147,23 +176,25 @@ export default function HistoryScreen() {
                       <Text style={[styles.badgeCategory, { color: riskColor }]}>{item.category}</Text>
                     </View>
                     {amount ? (
-                      <View style={styles.amountPill}>
-                        <Text style={styles.amountPillText}>{amount}</Text>
+                      <View style={[styles.amountPill, isLight && { backgroundColor: '#F1F5F9' }]}>
+                        <Text style={[styles.amountPillText, isLight && { color: colors.textPrimary }]}>
+                          {amount}
+                        </Text>
                       </View>
                     ) : null}
                   </View>
 
                   {declaredName ? (
-                    <Text style={styles.itemName} numberOfLines={1}>
+                    <Text style={[styles.itemName, isLight && { color: colors.textPrimary }]} numberOfLines={1}>
                       {declaredName}
                     </Text>
                   ) : null}
 
-                  <Text style={styles.itemTitle} numberOfLines={1}>
+                  <Text style={[styles.itemTitle, isLight && { color: colors.textSecondary }]} numberOfLines={1}>
                     {title}
                   </Text>
 
-                  <Text style={styles.itemDate}>
+                  <Text style={[styles.itemDate, isLight && { color: colors.textMuted }]}>
                     {new Date(item.evaluatedAt).toLocaleDateString([], {
                       month: 'short',
                       day: 'numeric'
@@ -179,10 +210,10 @@ export default function HistoryScreen() {
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={styles.deleteBtn}
+                style={[styles.deleteBtn, isLight && { backgroundColor: '#F1F5F9', borderColor: '#E2E8F0' }]}
                 onPress={() => void handleDeleteItem(item.evaluatedAt)}
               >
-                <Text style={styles.deleteIcon}>✕</Text>
+                <Text style={[styles.deleteIcon, isLight && { color: '#64748B' }]}>✕</Text>
               </TouchableOpacity>
             </View>
           );

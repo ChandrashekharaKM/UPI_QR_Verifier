@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import type { RiskCategory } from '@upi-verifier/core';
 import { getRiskColor, getRiskBgColor, COLORS } from '../lib/theme';
+import { useTheme } from '../lib/ThemeContext';
 
 interface RiskGaugeProps {
   score: number;
@@ -9,8 +10,9 @@ interface RiskGaugeProps {
 }
 
 export const RiskGauge: React.FC<RiskGaugeProps> = ({ score, category }) => {
-  const riskColor = getRiskColor(category);
-  const riskBg = getRiskBgColor(category);
+  const { colors, isLight } = useTheme();
+  const riskColor = getRiskColor(category, colors);
+  const riskBg = getRiskBgColor(category, colors);
 
   const getCategoryLabel = () => {
     switch (category) {
@@ -37,11 +39,11 @@ export const RiskGauge: React.FC<RiskGaugeProps> = ({ score, category }) => {
   return (
     <View style={styles.container}>
       <View style={[styles.outerGlow, { backgroundColor: riskBg, borderColor: riskColor }]}>
-        <View style={[styles.ringTrack, { borderColor: riskColor }]}>
-          <View style={styles.innerDial}>
+        <View style={[styles.ringTrack, { borderColor: riskColor }, isLight && { backgroundColor: '#F8FAFC' }]}>
+          <View style={[styles.innerDial, isLight && { backgroundColor: '#FFFFFF', borderColor: '#E2E8F0' }]}>
             <Text style={[styles.scoreNumber, { color: riskColor }]}>{score}</Text>
-            <Text style={styles.scoreScale}>/ 100</Text>
-            <Text style={styles.scoreLabel}>RISK INDEX</Text>
+            <Text style={[styles.scoreScale, isLight && { color: '#64748B' }]}>/ 100</Text>
+            <Text style={[styles.scoreLabel, isLight && { color: '#475569' }]}>RISK INDEX</Text>
           </View>
         </View>
       </View>
@@ -50,8 +52,8 @@ export const RiskGauge: React.FC<RiskGaugeProps> = ({ score, category }) => {
         <Text style={styles.badgeText}>{getCategoryLabel()}</Text>
       </View>
 
-      <Text style={styles.categorySubtext}>{getCategorySubtitle()}</Text>
-      <Text style={styles.scaleHelper}>0 = Minimal Risk Indicators · 100 = Severe Fraud Indicators</Text>
+      <Text style={[styles.categorySubtext, isLight && { color: '#334155' }]}>{getCategorySubtitle()}</Text>
+      <Text style={[styles.scaleHelper, isLight && { color: '#64748B' }]}>0 = Minimal Risk Indicators · 100 = Severe Fraud Indicators</Text>
     </View>
   );
 };
