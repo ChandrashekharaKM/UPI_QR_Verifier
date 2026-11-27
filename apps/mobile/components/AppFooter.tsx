@@ -14,8 +14,8 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { id: 'home', label: 'Home', icon: '🏠', path: '/' },
-  { id: 'scan', label: 'Scan', icon: '📷', path: '/scan', isHero: true },
   { id: 'upload', label: 'Upload', icon: '🖼️', path: '/upload' },
+  { id: 'scan', label: 'Scan', icon: '📷', path: '/scan', isHero: true },
   { id: 'history', label: 'History', icon: '🕒', path: '/history' },
   { id: 'about', label: 'About', icon: 'ℹ️', path: '/about' }
 ];

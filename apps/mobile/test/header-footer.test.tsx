@@ -77,9 +77,10 @@ describe('AppHeader Component', () => {
     });
     const root = renderer!.root;
     const texts = root.findAllByType('Text' as any).map((t) => t.props.children);
-    expect(texts).toContain('UPI SHIELD');
-    expect(texts).toContain('OFFLINE QR VERIFIER');
+    expect(texts).toContain('UPI QR VERIFIER');
+    expect(texts).toContain('OFFLINE FRAUD DEFENSE');
     expect(texts).toContain('100% OFFLINE');
+    expect(texts).toContain('⛶');
   });
 
   it('renders back navigation button and screen title on inner screens', () => {

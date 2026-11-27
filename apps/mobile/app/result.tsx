@@ -26,6 +26,8 @@ import { RiskGauge } from '../components/RiskGauge';
 import { ReasonCard } from '../components/ReasonCard';
 import { DisclaimerBanner } from '../components/DisclaimerBanner';
 import { QrRiskAlertModal } from '../components/QrRiskAlertModal';
+import { PaymentAppPrompt } from '../components/PaymentAppPrompt';
+import { buildUpiPaymentUri, launchPaymentApp } from '../lib/payment-apps';
 
 export default function ResultScreen() {
   const router = useRouter();
@@ -302,6 +304,14 @@ export default function ResultScreen() {
         <Text style={styles.noteTitle}>Advisory Note</Text>
         <Text style={styles.noteText}>{verification.confidenceNote}</Text>
       </View>
+
+      {/* Safe Payment Apps Prompt (Scans available payment apps and prompts to pay) */}
+      {verification.category === 'SAFE' && (upiFields || verification.parsed.kind === 'upi' || verification.parsed.kind === 'emv') ? (
+        <PaymentAppPrompt
+          rawPayload={rawPayload}
+          verification={verification}
+        />
+      ) : null}
 
       {/* Non-Payment Utility Code Banner */}
       {verification.isNonPaymentQr ? (
@@ -786,6 +796,20 @@ export default function ResultScreen() {
 
       {/* Action Buttons */}
       <View style={styles.actionContainer}>
+        {/* Action 0: If Safe, primary prompt to pay with UPI app */}
+        {verification.category === 'SAFE' && (upiFields || verification.parsed.kind === 'upi' || verification.parsed.kind === 'emv') ? (
+          <TouchableOpacity
+            style={styles.payPrimaryButton}
+            activeOpacity={0.85}
+            onPress={() => {
+              const uri = buildUpiPaymentUri(rawPayload, verification);
+              void launchPaymentApp(uri, uri, 'UPI App');
+            }}
+          >
+            <Text style={styles.payPrimaryButtonText}>💳 Pay with Installed UPI App</Text>
+          </TouchableOpacity>
+        ) : null}
+
         {/* Action 1: Don't pay / Close */}
         <TouchableOpacity
           style={styles.safeDismissButton}
@@ -868,6 +892,7 @@ export default function ResultScreen() {
           onDismiss={() => setShowRiskAlertModal(false)}
           onAbortPayment={() => router.replace('/')}
           onCopyVpa={(vpa) => handleCopyVpa(vpa)}
+          onProceedToPay={() => setShowRiskAlertModal(false)}
         />
       ) : null}
     </ScrollView>
@@ -1176,6 +1201,25 @@ const styles = StyleSheet.create({
   actionContainer: {
     gap: 10,
     marginTop: 16
+  },
+  payPrimaryButton: {
+    backgroundColor: '#059669',
+    borderColor: '#10B981',
+    borderWidth: 1.5,
+    borderRadius: 14,
+    paddingVertical: 16,
+    alignItems: 'center',
+    shadowColor: '#10B981',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    elevation: 4
+  },
+  payPrimaryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '800',
+    letterSpacing: 0.4
   },
   safeDismissButton: {
     backgroundColor: '#1E293B',

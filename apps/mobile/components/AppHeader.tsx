@@ -50,14 +50,14 @@ export function AppHeader() {
     <View style={[styles.headerContainer, { paddingTop: Math.max(insets.top, Platform.OS === 'web' ? 12 : 10) }]}>
       <View style={styles.headerContent}>
         {isHome ? (
-          /* Home Screen Header: Brand Shield & Title */
+          /* Home Screen Header: QR Code Brand & Title */
           <View style={styles.brandRow}>
-            <View style={styles.shieldBadge}>
-              <Text style={styles.shieldIcon}>🛡️</Text>
+            <View style={styles.qrBadge}>
+              <Text style={styles.qrIcon}>⛶</Text>
             </View>
             <View style={styles.brandTextGroup}>
-              <Text style={styles.brandTitle}>UPI SHIELD</Text>
-              <Text style={styles.brandSubtitle}>OFFLINE QR VERIFIER</Text>
+              <Text style={styles.brandTitle}>UPI QR VERIFIER</Text>
+              <Text style={styles.brandSubtitle}>OFFLINE FRAUD DEFENSE</Text>
             </View>
           </View>
         ) : (
@@ -116,18 +116,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10
   },
-  shieldBadge: {
+  qrBadge: {
     width: 34,
     height: 34,
     borderRadius: 9,
     backgroundColor: 'rgba(56, 189, 248, 0.12)',
-    borderWidth: 1,
-    borderColor: 'rgba(56, 189, 248, 0.35)',
+    borderWidth: 1.5,
+    borderColor: '#38BDF8',
     alignItems: 'center',
     justifyContent: 'center'
   },
-  shieldIcon: {
-    fontSize: 18
+  qrIcon: {
+    fontSize: 20,
+    color: '#38BDF8',
+    fontWeight: '800'
   },
   brandTextGroup: {
     flexDirection: 'column'

@@ -19,6 +19,7 @@ export interface QrRiskAlertModalProps {
   onDismiss: () => void;
   onAbortPayment: () => void;
   onCopyVpa?: (vpa: string) => void;
+  onProceedToPay?: () => void;
 }
 
 export function QrRiskAlertModal({
@@ -26,7 +27,8 @@ export function QrRiskAlertModal({
   intent,
   onDismiss,
   onAbortPayment,
-  onCopyVpa
+  onCopyVpa,
+  onProceedToPay
 }: QrRiskAlertModalProps) {
   const [copiedVpa, setCopiedVpa] = useState(false);
 
@@ -201,6 +203,19 @@ export function QrRiskAlertModal({
               </View>
             </View>
 
+            {/* When Safe: Prompt for Payment with Available Apps */}
+            {isSafe ? (
+              <View style={styles.safePayPromptCard}>
+                <View style={styles.safePayPromptHeader}>
+                  <Text style={styles.safePayPromptIcon}>⚡</Text>
+                  <Text style={styles.safePayPromptTitle}>Verified Safe to Pay</Text>
+                </View>
+                <Text style={styles.safePayPromptBody}>
+                  Format and banking handle verified clean. Tap "Proceed to Pay" to launch your installed UPI app (Google Pay, PhonePe, Paytm, etc.).
+                </Text>
+              </View>
+            ) : null}
+
             {/* Mandatory PIN safety reminder */}
             <View style={styles.pinReminderBox}>
               <Text style={styles.pinReminderIcon}>💡</Text>
@@ -213,20 +228,33 @@ export function QrRiskAlertModal({
 
           {/* Action Footer */}
           <View style={styles.actionFooter}>
-            <TouchableOpacity
-              style={styles.abortButton}
-              activeOpacity={0.85}
-              onPress={onAbortPayment}
-            >
-              <Text style={styles.abortButtonText}>🛑 Don't Pay / Cancel</Text>
-            </TouchableOpacity>
+            {isSafe ? (
+              <TouchableOpacity
+                style={styles.payNowButton}
+                activeOpacity={0.85}
+                onPress={() => {
+                  onProceedToPay?.();
+                  onDismiss();
+                }}
+              >
+                <Text style={styles.payNowButtonText}>💳 Proceed to Pay</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={styles.abortButton}
+                activeOpacity={0.85}
+                onPress={onAbortPayment}
+              >
+                <Text style={styles.abortButtonText}>🛑 Don't Pay / Cancel</Text>
+              </TouchableOpacity>
+            )}
 
             <TouchableOpacity
               style={styles.detailsButton}
               activeOpacity={0.85}
               onPress={onDismiss}
             >
-              <Text style={styles.detailsButtonText}>🔍 View Full Analysis</Text>
+              <Text style={styles.detailsButtonText}>🔍 View Analysis</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -519,6 +547,47 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '800',
     fontSize: 14
+  },
+  payNowButton: {
+    flex: 1.2,
+    backgroundColor: '#059669',
+    borderWidth: 1.5,
+    borderColor: '#10B981',
+    paddingVertical: 13,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  payNowButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '800',
+    fontSize: 14
+  },
+  safePayPromptCard: {
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    borderWidth: 1.5,
+    borderColor: '#10B981',
+    borderRadius: 12,
+    padding: 12,
+    gap: 6
+  },
+  safePayPromptHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8
+  },
+  safePayPromptIcon: {
+    fontSize: 18
+  },
+  safePayPromptTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#10B981'
+  },
+  safePayPromptBody: {
+    fontSize: 12,
+    color: '#E2E8F0',
+    lineHeight: 17
   },
   detailsButton: {
     flex: 1.2,

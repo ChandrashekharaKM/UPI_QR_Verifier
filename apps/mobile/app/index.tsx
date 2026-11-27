@@ -70,8 +70,8 @@ export default function HomeScreen() {
 
       {/* Hero Header */}
       <View style={styles.heroSection}>
-        <View style={styles.shieldBadge}>
-          <Text style={styles.shieldIcon}>🛡️</Text>
+        <View style={styles.qrLogoBadge}>
+          <Text style={styles.qrLogoIcon}>⛶</Text>
         </View>
         <Text style={styles.heroTitle}>Verify Before You Authorize</Text>
         <Text style={styles.heroSubtitle}>
@@ -341,24 +341,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginVertical: 14
   },
-  shieldBadge: {
+  qrLogoBadge: {
     width: 68,
     height: 68,
-    borderRadius: 34,
-    backgroundColor: COLORS.bgCardElevated,
-    borderColor: 'rgba(56, 189, 248, 0.35)',
+    borderRadius: 20,
+    backgroundColor: 'rgba(56, 189, 248, 0.12)',
+    borderColor: '#38BDF8',
     borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 14,
     shadowColor: COLORS.primaryLight,
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    elevation: 6
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    elevation: 8
   },
-  shieldIcon: {
-    fontSize: 32
+  qrLogoIcon: {
+    fontSize: 34,
+    color: '#38BDF8',
+    fontWeight: '800'
   },
   heroTitle: {
     fontSize: 24,
