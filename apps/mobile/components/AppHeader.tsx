@@ -2,9 +2,11 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { usePathname, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { COLORS } from '../lib/theme';
+import { useTheme } from '../lib/ThemeContext';
 
 export function AppHeader() {
+  const { colors, isLight, toggleTheme } = useTheme();
+
   let pathname = '/';
   try {
     pathname = usePathname() || '/';
@@ -47,17 +49,34 @@ export function AppHeader() {
   };
 
   return (
-    <View style={[styles.headerContainer, { paddingTop: Math.max(insets.top, Platform.OS === 'web' ? 12 : 10) }]}>
+    <View
+      style={[
+        styles.headerContainer,
+        {
+          backgroundColor: colors.headerBg,
+          borderBottomColor: isLight ? '#E2E8F0' : 'rgba(255, 255, 255, 0.08)',
+          paddingTop: Math.max(insets.top, Platform.OS === 'web' ? 12 : 10)
+        }
+      ]}
+    >
       <View style={styles.headerContent}>
         {isHome ? (
           /* Home Screen Header: QR Code Brand & Title */
           <View style={styles.brandRow}>
-            <View style={styles.qrBadge}>
-              <Text style={styles.qrIcon}>⛶</Text>
+            <View
+              style={[
+                styles.qrBadge,
+                isLight && {
+                  backgroundColor: '#E0F2FE',
+                  borderColor: colors.primary
+                }
+              ]}
+            >
+              <Text style={[styles.qrIcon, isLight && { color: colors.primary }]}>⛶</Text>
             </View>
             <View style={styles.brandTextGroup}>
-              <Text style={styles.brandTitle}>UPI QR VERIFIER</Text>
-              <Text style={styles.brandSubtitle}>OFFLINE FRAUD DEFENSE</Text>
+              <Text style={[styles.brandTitle, { color: colors.textPrimary }]}>UPI QR VERIFIER</Text>
+              <Text style={[styles.brandSubtitle, { color: colors.primary }]}>OFFLINE FRAUD DEFENSE</Text>
             </View>
           </View>
         ) : (
@@ -70,22 +89,31 @@ export function AppHeader() {
               accessibilityLabel="Go back"
               accessibilityRole="button"
             >
-              <Text style={styles.backChevron}>‹</Text>
-              <Text style={styles.backText}>Back</Text>
+              <Text style={[styles.backChevron, { color: colors.primary }]}>‹</Text>
+              <Text style={[styles.backText, { color: colors.primary }]}>Back</Text>
             </TouchableOpacity>
-            <Text style={styles.screenTitle} numberOfLines={1}>
+            <Text style={[styles.screenTitle, { color: colors.textPrimary }]} numberOfLines={1}>
               {getScreenTitle(pathname)}
             </Text>
           </View>
         )}
 
-        {/* Universal Privacy & Offline Status Pill */}
-        <View style={styles.offlinePill}>
-          <View style={styles.pulseDot} />
-          <Text style={styles.offlineText}>
-            {isHome ? '100% OFFLINE' : 'OFFLINE'}
+        {/* Universal Privacy & Offline Status Pill (Tap 100 to toggle White Theme) */}
+        <TouchableOpacity
+          style={[
+            styles.offlinePill,
+            isLight && styles.offlinePillLight
+          ]}
+          activeOpacity={0.7}
+          onPress={toggleTheme}
+          accessibilityLabel="Toggle White Theme"
+          accessibilityRole="button"
+        >
+          <View style={[styles.pulseDot, isLight && styles.pulseDotLight]} />
+          <Text style={[styles.offlineText, isLight && styles.offlineTextLight]}>
+            {isLight ? (isHome ? '100% ☀️ WHITE' : '☀️ WHITE') : (isHome ? '100% OFFLINE' : 'OFFLINE')}
           </Text>
-        </View>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -93,16 +121,14 @@ export function AppHeader() {
 
 const styles = StyleSheet.create({
   headerContainer: {
-    backgroundColor: '#0B0F19',
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.08)',
     paddingBottom: 10,
     paddingHorizontal: 16,
     zIndex: 100,
     elevation: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.15,
     shadowRadius: 4
   },
   headerContent: {
@@ -137,13 +163,11 @@ const styles = StyleSheet.create({
   brandTitle: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#F8FAFC',
     letterSpacing: 0.6
   },
   brandSubtitle: {
     fontSize: 9,
     fontWeight: '700',
-    color: '#38BDF8',
     letterSpacing: 0.8
   },
   navRow: {
@@ -161,19 +185,16 @@ const styles = StyleSheet.create({
   backChevron: {
     fontSize: 24,
     lineHeight: 24,
-    color: '#38BDF8',
     fontWeight: '300',
     marginRight: 2
   },
   backText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#38BDF8'
+    fontWeight: '600'
   },
   screenTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#F8FAFC',
     flexShrink: 1
   },
   offlinePill: {
@@ -187,16 +208,26 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     gap: 6
   },
+  offlinePillLight: {
+    backgroundColor: '#ECFDF5',
+    borderColor: '#10B981'
+  },
   pulseDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
     backgroundColor: '#10B981'
   },
+  pulseDotLight: {
+    backgroundColor: '#059669'
+  },
   offlineText: {
     fontSize: 10,
     fontWeight: '800',
     color: '#10B981',
     letterSpacing: 0.4
+  },
+  offlineTextLight: {
+    color: '#059669'
   }
 });

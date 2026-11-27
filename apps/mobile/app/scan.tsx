@@ -18,12 +18,14 @@ import {
 } from '@upi-verifier/core';
 import { saveScanToHistory } from '../lib/storage';
 import { COLORS } from '../lib/theme';
+import { useTheme } from '../lib/ThemeContext';
 import { HalfScreenCamera } from '../components/HalfScreenCamera';
 import { LensScanPromptModal } from '../components/LensScanPromptModal';
 import { MultipleQrModal } from '../components/MultipleQrModal';
 
 export default function ScanScreen() {
   const router = useRouter();
+  const { colors, isLight } = useTheme();
   const [manualInput, setManualInput] = useState('');
   const [showManual, setShowManual] = useState(false);
   const [candidateQrs, setCandidateQrs] = useState<string[]>([]);
@@ -71,24 +73,44 @@ export default function ScanScreen() {
           <View style={styles.floatingControls}>
             {/* Type or Paste QR Code Button */}
             <TouchableOpacity
-              style={styles.manualBtn}
+              style={[
+                styles.manualBtn,
+                isLight && {
+                  backgroundColor: '#FFFFFF',
+                  borderColor: '#CBD5E1',
+                  shadowColor: '#000',
+                  shadowOpacity: 0.1
+                }
+              ]}
               activeOpacity={0.85}
               onPress={() => setShowManual(true)}
               accessibilityLabel="Type or Paste QR Code"
             >
               <Text style={styles.manualBtnIcon}>💳</Text>
-              <Text style={styles.manualBtnText}>Type or Paste QR Code</Text>
+              <Text style={[styles.manualBtnText, isLight && { color: '#0F172A' }]}>
+                Type or Paste QR Code
+              </Text>
             </TouchableOpacity>
 
             {/* Gallery Button */}
             <TouchableOpacity
-              style={styles.galleryBtn}
+              style={[
+                styles.galleryBtn,
+                isLight && {
+                  backgroundColor: '#FFFFFF',
+                  borderColor: '#CBD5E1',
+                  shadowColor: '#000',
+                  shadowOpacity: 0.1
+                }
+              ]}
               activeOpacity={0.85}
               onPress={() => router.push('/upload')}
               accessibilityLabel="Upload from Gallery"
             >
               <Text style={styles.galleryBtnIcon}>🖼️</Text>
-              <Text style={styles.galleryBtnText}>Gallery</Text>
+              <Text style={[styles.galleryBtnText, isLight && { color: '#475569' }]}>
+                Gallery
+              </Text>
             </TouchableOpacity>
           </View>
         )}
@@ -102,27 +124,36 @@ export default function ScanScreen() {
         onRequestClose={() => setShowManual(false)}
       >
         <View style={styles.modalBackdrop}>
-          <View style={styles.modalSheet}>
+          <View style={[styles.modalSheet, isLight && { backgroundColor: '#FFFFFF', borderColor: '#E2E8F0' }]}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Manual QR Payload Inspector</Text>
+              <Text style={[styles.modalTitle, isLight && { color: '#0F172A' }]}>
+                Manual QR Payload Inspector
+              </Text>
               <TouchableOpacity
                 onPress={() => setShowManual(false)}
                 style={styles.modalCloseBtn}
               >
-                <Text style={styles.modalCloseText}>✕</Text>
+                <Text style={[styles.modalCloseText, isLight && { color: '#64748B' }]}>✕</Text>
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.modalHelp}>
+            <Text style={[styles.modalHelp, isLight && { color: '#64748B' }]}>
               Paste any `upi://pay`, BharatQR raw string, or deep link:
             </Text>
 
             <TextInput
-              style={styles.modalInput}
+              style={[
+                styles.modalInput,
+                isLight && {
+                  backgroundColor: '#F1F5F9',
+                  borderColor: '#CBD5E1',
+                  color: '#0F172A'
+                }
+              ]}
               value={manualInput}
               onChangeText={setManualInput}
               placeholder="upi://pay?pa=merchant@okhdfcbank&pn=Store&am=150.00..."
-              placeholderTextColor={COLORS.textMuted}
+              placeholderTextColor={isLight ? '#94A3B8' : COLORS.textMuted}
               multiline
               autoCapitalize="none"
               autoCorrect={false}
@@ -130,16 +161,17 @@ export default function ScanScreen() {
 
             <View style={styles.modalActionRow}>
               <TouchableOpacity
-                style={styles.modalCancelBtn}
+                style={[styles.modalCancelBtn, isLight && { backgroundColor: '#F1F5F9' }]}
                 onPress={() => setShowManual(false)}
               >
-                <Text style={styles.modalCancelText}>Cancel</Text>
+                <Text style={[styles.modalCancelText, isLight && { color: '#64748B' }]}>Cancel</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={[
                   styles.modalSubmitBtn,
-                  !manualInput.trim() && styles.modalSubmitDisabled
+                  !manualInput.trim() && styles.modalSubmitDisabled,
+                  isLight && { backgroundColor: colors.primary }
                 ]}
                 disabled={!manualInput.trim()}
                 onPress={() => {

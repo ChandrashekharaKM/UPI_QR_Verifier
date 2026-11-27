@@ -16,6 +16,7 @@ import {
   type QrIntentDescription
 } from '@upi-verifier/core';
 import { COLORS, getRiskColor, getRiskBgColor } from '../lib/theme';
+import { useTheme } from '../lib/ThemeContext';
 import { getScanHistory, saveScanToHistory } from '../lib/storage';
 import { DisclaimerBanner } from '../components/DisclaimerBanner';
 import { SAFETY_TIPS, SafetyTipCard } from '../components/SafetyTipCard';
@@ -39,6 +40,7 @@ const DEMO_PAYLOADS = [
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { colors, isLight } = useTheme();
   const [recentScans, setRecentScans] = useState<VerificationResult[]>([]);
   const [quickInput, setQuickInput] = useState('');
   const [cameraPaused, setCameraPaused] = useState(false);
@@ -89,12 +91,17 @@ export default function HomeScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView
+      style={[styles.container, { backgroundColor: colors.bgPrimary }]}
+      contentContainerStyle={styles.content}
+    >
       {/* Top Security Status Pill */}
       <View style={styles.statusPillContainer}>
-        <View style={styles.statusPill}>
+        <View style={[styles.statusPill, isLight && { backgroundColor: '#F1F5F9', borderColor: '#E2E8F0' }]}>
           <View style={styles.statusDot} />
-          <Text style={styles.statusPillText}>OFFLINE HEURISTIC SHIELD ACTIVE · ZERO DATA TRANSMITTED</Text>
+          <Text style={[styles.statusPillText, isLight && { color: colors.textSecondary }]}>
+            OFFLINE HEURISTIC SHIELD ACTIVE · ZERO DATA TRANSMITTED
+          </Text>
         </View>
       </View>
 
@@ -110,40 +117,73 @@ export default function HomeScreen() {
 
       {/* Gallery Upload Action (Single prominent button like Google Lens) */}
       <TouchableOpacity
-        style={styles.galleryButton}
+        style={[
+          styles.galleryButton,
+          isLight && {
+            backgroundColor: '#FFFFFF',
+            borderColor: colors.primary,
+            shadowColor: '#000',
+            shadowOpacity: 0.06
+          }
+        ]}
         activeOpacity={0.88}
         onPress={() => router.push('/upload')}
         accessibilityLabel="Upload Image from Gallery"
       >
-        <View style={styles.iconCircleGallery}>
+        <View style={[styles.iconCircleGallery, isLight && { backgroundColor: '#E0F2FE', borderColor: colors.primary }]}>
           <Text style={styles.buttonIcon}>🖼️</Text>
         </View>
         <View style={styles.buttonTextGroup}>
           <View style={styles.badgeRow}>
-            <Text style={styles.galleryButtonText}>Upload Image from Gallery</Text>
-            <View style={styles.pillTagGallery}>
-              <Text style={styles.pillTagGalleryText}>PHOTO / GALLERY</Text>
+            <Text style={[styles.galleryButtonText, isLight && { color: colors.textPrimary }]}>
+              Upload Image from Gallery
+            </Text>
+            <View style={[styles.pillTagGallery, isLight && { backgroundColor: '#E0F2FE' }]}>
+              <Text style={[styles.pillTagGalleryText, isLight && { color: colors.primary }]}>
+                PHOTO / GALLERY
+              </Text>
             </View>
           </View>
-          <Text style={styles.buttonSubtext}>
+          <Text style={[styles.buttonSubtext, isLight && { color: colors.textSecondary }]}>
             Inspect saved photos, laminated counter standees, or invoices
           </Text>
         </View>
       </TouchableOpacity>
 
       {/* Quick Text / Intent Tester */}
-      <View style={styles.quickTestCard}>
+      <View
+        style={[
+          styles.quickTestCard,
+          isLight && {
+            backgroundColor: '#FFFFFF',
+            borderColor: '#E2E8F0',
+            shadowColor: '#000',
+            shadowOpacity: 0.05
+          }
+        ]}
+      >
         <View style={styles.quickTestHeader}>
-          <Text style={styles.quickTestTitle}>Quick UPI Link / Payload Verifier</Text>
-          <Text style={styles.quickTestHint}>Paste any raw QR text or intent</Text>
+          <Text style={[styles.quickTestTitle, isLight && { color: colors.textPrimary }]}>
+            Quick UPI Link / Payload Verifier
+          </Text>
+          <Text style={[styles.quickTestHint, isLight && { color: colors.textMuted }]}>
+            Paste any raw QR text or intent
+          </Text>
         </View>
         <View style={styles.quickInputRow}>
           <TextInput
-            style={styles.quickTextInput}
+            style={[
+              styles.quickTextInput,
+              isLight && {
+                backgroundColor: '#F1F5F9',
+                borderColor: '#CBD5E1',
+                color: colors.textPrimary
+              }
+            ]}
             value={quickInput}
             onChangeText={setQuickInput}
             placeholder="Paste upi://pay?pa=... or BharatQR 000201..."
-            placeholderTextColor={COLORS.textMuted}
+            placeholderTextColor={isLight ? '#94A3B8' : COLORS.textMuted}
             autoCapitalize="none"
             autoCorrect={false}
           />
@@ -158,12 +198,14 @@ export default function HomeScreen() {
 
         {/* Demo Payload Pills */}
         <View style={styles.demoPillsContainer}>
-          <Text style={styles.demoPillsLabel}>Quick Test Samples:</Text>
+          <Text style={[styles.demoPillsLabel, isLight && { color: colors.textMuted }]}>
+            Quick Test Samples:
+          </Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.demoScroll}>
             {DEMO_PAYLOADS.map((demo) => (
               <TouchableOpacity
                 key={demo.label}
-                style={styles.demoChip}
+                style={[styles.demoChip, isLight && { backgroundColor: '#F1F5F9', borderColor: '#E2E8F0' }]}
                 onPress={() => {
                   setQuickInput(demo.payload);
                   router.push({
@@ -172,7 +214,9 @@ export default function HomeScreen() {
                   });
                 }}
               >
-                <Text style={styles.demoChipText}>{demo.label}</Text>
+                <Text style={[styles.demoChipText, isLight && { color: colors.textPrimary }]}>
+                  {demo.label}
+                </Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -180,50 +224,50 @@ export default function HomeScreen() {
       </View>
 
       {/* Feature Badges Strip */}
-      <View style={styles.featureStrip}>
+      <View style={[styles.featureStrip, isLight && { backgroundColor: '#FFFFFF', borderColor: '#E2E8F0' }]}>
         <View style={styles.featureItem}>
           <Text style={styles.featureIcon}>🔒</Text>
-          <Text style={styles.featureTitle}>100% Offline</Text>
-          <Text style={styles.featureDesc}>Zero data sent</Text>
+          <Text style={[styles.featureTitle, isLight && { color: colors.textPrimary }]}>100% Offline</Text>
+          <Text style={[styles.featureDesc, isLight && { color: colors.textSecondary }]}>Zero data sent</Text>
         </View>
-        <View style={styles.featureDivider} />
+        <View style={[styles.featureDivider, isLight && { backgroundColor: '#E2E8F0' }]} />
         <View style={styles.featureItem}>
           <Text style={styles.featureIcon}>🏛️</Text>
-          <Text style={styles.featureTitle}>120+ Banks</Text>
-          <Text style={styles.featureDesc}>NPCI allowlist</Text>
+          <Text style={[styles.featureTitle, isLight && { color: colors.textPrimary }]}>120+ Banks</Text>
+          <Text style={[styles.featureDesc, isLight && { color: colors.textSecondary }]}>NPCI allowlist</Text>
         </View>
-        <View style={styles.featureDivider} />
+        <View style={[styles.featureDivider, isLight && { backgroundColor: '#E2E8F0' }]} />
         <View style={styles.featureItem}>
           <Text style={styles.featureIcon}>🏷️</Text>
-          <Text style={styles.featureTitle}>EMVCo Ready</Text>
-          <Text style={styles.featureDesc}>CRC16 standees</Text>
+          <Text style={[styles.featureTitle, isLight && { color: colors.textPrimary }]}>EMVCo Ready</Text>
+          <Text style={[styles.featureDesc, isLight && { color: colors.textSecondary }]}>CRC16 standees</Text>
         </View>
       </View>
 
       {/* Secondary Nav Links */}
       <View style={styles.navRow}>
         <TouchableOpacity
-          style={styles.navChip}
+          style={[styles.navChip, isLight && { backgroundColor: '#FFFFFF', borderColor: '#E2E8F0' }]}
           onPress={() => router.push('/history')}
         >
           <Text style={styles.navChipIcon}>📋</Text>
-          <Text style={styles.navChipText}>Audit Log</Text>
+          <Text style={[styles.navChipText, isLight && { color: colors.textPrimary }]}>Audit Log</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.navChip}
+          style={[styles.navChip, isLight && { backgroundColor: '#FFFFFF', borderColor: '#E2E8F0' }]}
           onPress={() => router.push('/report')}
         >
           <Text style={styles.navChipIcon}>🚨</Text>
-          <Text style={styles.navChipText}>Report Scam</Text>
+          <Text style={[styles.navChipText, isLight && { color: colors.textPrimary }]}>Report Scam</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.navChip}
+          style={[styles.navChip, isLight && { backgroundColor: '#FFFFFF', borderColor: '#E2E8F0' }]}
           onPress={() => router.push('/about')}
         >
           <Text style={styles.navChipIcon}>ℹ️</Text>
-          <Text style={styles.navChipText}>Security Specs</Text>
+          <Text style={[styles.navChipText, isLight && { color: colors.textPrimary }]}>Security Specs</Text>
         </TouchableOpacity>
       </View>
 
@@ -233,26 +277,26 @@ export default function HomeScreen() {
       {/* Recent Scans Section */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Recent Inspections</Text>
+          <Text style={[styles.sectionTitle, isLight && { color: colors.textPrimary }]}>Recent Inspections</Text>
           {recentScans.length > 0 ? (
             <TouchableOpacity onPress={() => router.push('/history')}>
-              <Text style={styles.seeAllText}>View All ({recentScans.length})</Text>
+              <Text style={[styles.seeAllText, isLight && { color: colors.primary }]}>View All ({recentScans.length})</Text>
             </TouchableOpacity>
           ) : null}
         </View>
 
         {recentScans.length === 0 ? (
-          <View style={styles.emptyCard}>
+          <View style={[styles.emptyCard, isLight && { backgroundColor: '#FFFFFF', borderColor: '#E2E8F0' }]}>
             <Text style={styles.emptyIcon}>🔍</Text>
-            <Text style={styles.emptyText}>No previous scans recorded yet.</Text>
-            <Text style={styles.emptySubtext}>
+            <Text style={[styles.emptyText, isLight && { color: colors.textPrimary }]}>No previous scans recorded yet.</Text>
+            <Text style={[styles.emptySubtext, isLight && { color: colors.textSecondary }]}>
               All scan logs are kept strictly on this device and can be cleared at any time.
             </Text>
           </View>
         ) : (
           recentScans.map((scan) => {
-            const riskColor = getRiskColor(scan.category);
-            const riskBg = getRiskBgColor(scan.category);
+            const riskColor = getRiskColor(scan.category, colors);
+            const riskBg = getRiskBgColor(scan.category, colors);
             const isUpiOrEmv =
               (scan.parsed.kind === 'upi' || scan.parsed.kind === 'emv') &&
               (scan.parsed.fields.kind === 'upi' || scan.parsed.fields.kind === 'emv');
@@ -262,7 +306,15 @@ export default function HomeScreen() {
             return (
               <TouchableOpacity
                 key={scan.evaluatedAt}
-                style={styles.recentItem}
+                style={[
+                  styles.recentItem,
+                  isLight && {
+                    backgroundColor: '#FFFFFF',
+                    borderColor: '#E2E8F0',
+                    shadowColor: '#000',
+                    shadowOpacity: 0.05
+                  }
+                ]}
                 activeOpacity={0.8}
                 onPress={() => {
                   router.push({
@@ -273,14 +325,14 @@ export default function HomeScreen() {
               >
                 <View style={styles.recentInfo}>
                   {name ? (
-                    <Text style={styles.recentName} numberOfLines={1}>
+                    <Text style={[styles.recentName, isLight && { color: colors.textPrimary }]} numberOfLines={1}>
                       {name}
                     </Text>
                   ) : null}
-                  <Text style={styles.recentVpa} numberOfLines={1}>
+                  <Text style={[styles.recentVpa, isLight && { color: colors.primary }]} numberOfLines={1}>
                     {vpa}
                   </Text>
-                  <Text style={styles.recentDate}>
+                  <Text style={[styles.recentDate, isLight && { color: colors.textMuted }]}>
                     {new Date(scan.evaluatedAt).toLocaleTimeString([], {
                       hour: '2-digit',
                       minute: '2-digit'
@@ -299,7 +351,7 @@ export default function HomeScreen() {
 
       {/* Security Guidance Section */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Essential Safety Tips</Text>
+        <Text style={[styles.sectionTitle, isLight && { color: colors.textPrimary }]}>Essential Safety Tips</Text>
         {SAFETY_TIPS.map((tip) => (
           <SafetyTipCard key={tip.id} tip={tip} />
         ))}

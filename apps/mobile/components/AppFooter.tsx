@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { usePathname, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { COLORS } from '../lib/theme';
+import { useTheme } from '../lib/ThemeContext';
 
 interface NavItem {
   id: string;
@@ -21,6 +21,8 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 export function AppFooter() {
+  const { colors, isLight } = useTheme();
+
   let pathname = '/';
   try {
     pathname = usePathname() || '/';
@@ -57,7 +59,16 @@ export function AppFooter() {
   };
 
   return (
-    <View style={[styles.footerContainer, { paddingBottom: Math.max(insets.bottom, Platform.OS === 'web' ? 12 : 8) }]}>
+    <View
+      style={[
+        styles.footerContainer,
+        {
+          backgroundColor: colors.footerBg,
+          borderTopColor: isLight ? '#E2E8F0' : 'rgba(255, 255, 255, 0.08)',
+          paddingBottom: Math.max(insets.bottom, Platform.OS === 'web' ? 12 : 8)
+        }
+      ]}
+    >
       <View style={styles.navRow}>
         {NAV_ITEMS.map((item) => {
           const active = isCurrentActive(item.path);
@@ -73,10 +84,24 @@ export function AppFooter() {
                 accessibilityRole="button"
                 accessibilityState={{ selected: active }}
               >
-                <View style={[styles.heroButtonCircle, active && styles.heroButtonActive]}>
+                <View
+                  style={[
+                    styles.heroButtonCircle,
+                    isLight && { backgroundColor: '#E0F2FE', borderColor: colors.primary },
+                    active && styles.heroButtonActive,
+                    active && isLight && { backgroundColor: colors.primary, borderColor: '#0284C7' }
+                  ]}
+                >
                   <Text style={styles.heroIcon}>{item.icon}</Text>
                 </View>
-                <Text style={[styles.tabLabel, active ? styles.tabLabelActive : styles.tabLabelHero]}>
+                <Text
+                  style={[
+                    styles.tabLabel,
+                    active
+                      ? [styles.tabLabelActive, { color: colors.primary }]
+                      : [styles.tabLabelHero, isLight && { color: colors.textSecondary }]
+                  ]}
+                >
                   {item.label}
                 </Text>
               </TouchableOpacity>
@@ -93,12 +118,24 @@ export function AppFooter() {
               accessibilityRole="button"
               accessibilityState={{ selected: active }}
             >
-              <View style={[styles.iconContainer, active && styles.iconContainerActive]}>
+              <View
+                style={[
+                  styles.iconContainer,
+                  active && styles.iconContainerActive,
+                  active && isLight && { backgroundColor: '#E0F2FE' }
+                ]}
+              >
                 <Text style={[styles.tabIcon, active && styles.tabIconActive]}>
                   {item.icon}
                 </Text>
               </View>
-              <Text style={[styles.tabLabel, active && styles.tabLabelActive]}>
+              <Text
+                style={[
+                  styles.tabLabel,
+                  isLight && { color: colors.textMuted },
+                  active && [styles.tabLabelActive, { color: colors.primary }]
+                ]}
+              >
                 {item.label}
               </Text>
             </TouchableOpacity>
@@ -111,16 +148,14 @@ export function AppFooter() {
 
 const styles = StyleSheet.create({
   footerContainer: {
-    backgroundColor: '#0B0F19',
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.08)',
     paddingTop: 6,
     paddingHorizontal: 8,
     zIndex: 100,
     elevation: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.15,
     shadowRadius: 4
   },
   navRow: {

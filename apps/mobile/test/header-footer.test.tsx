@@ -38,6 +38,33 @@ vi.mock('react-native', () => {
   };
 });
 
+// Mock expo-haptics
+vi.mock('expo-haptics', () => ({
+  impactAsync: vi.fn(),
+  notificationAsync: vi.fn(),
+  ImpactFeedbackStyle: { Medium: 'medium' },
+  NotificationFeedbackType: { Success: 'success' }
+}));
+
+// Mock AsyncStorage
+vi.mock('@react-native-async-storage/async-storage', () => {
+  let store: Record<string, string> = {};
+  return {
+    default: {
+      getItem: vi.fn(async (key: string) => store[key] ?? null),
+      setItem: vi.fn(async (key: string, value: string) => {
+        store[key] = value;
+      }),
+      removeItem: vi.fn(async (key: string) => {
+        delete store[key];
+      }),
+      clear: vi.fn(async () => {
+        store = {};
+      })
+    }
+  };
+});
+
 // Mock react-native-safe-area-context
 vi.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 44, bottom: 34, left: 0, right: 0 }),
@@ -62,6 +89,7 @@ vi.mock('expo-router', () => ({
 
 import { AppHeader } from '../components/AppHeader';
 import { AppFooter } from '../components/AppFooter';
+import { ThemeProvider } from '../lib/ThemeContext';
 
 describe('AppHeader Component', () => {
   beforeEach(() => {
@@ -121,6 +149,42 @@ describe('AppHeader Component', () => {
       const texts = renderer!.root.findAllByType('Text' as any).map((t) => t.props.children);
       expect(texts).toContain(route.title);
     }
+  });
+
+  it('toggles to white theme when 100% OFFLINE badge is tapped', () => {
+    currentPathname = '/';
+    let renderer: TestRenderer.ReactTestRenderer;
+    act(() => {
+      renderer = TestRenderer.create(
+        <ThemeProvider>
+          <AppHeader />
+        </ThemeProvider>
+      );
+    });
+
+    const root = renderer!.root;
+    let texts = root.findAllByType('Text' as any).map((t) => t.props.children);
+    expect(texts).toContain('100% OFFLINE');
+
+    const togglePill = root.findByProps({ accessibilityLabel: 'Toggle White Theme' });
+    expect(togglePill).toBeDefined();
+
+    // Tap on 100
+    act(() => {
+      togglePill.props.onPress();
+    });
+
+    // Now in white theme
+    texts = root.findAllByType('Text' as any).map((t) => t.props.children);
+    expect(texts).toContain('100% ☀️ WHITE');
+
+    // Tap again to toggle back to dark theme
+    act(() => {
+      togglePill.props.onPress();
+    });
+
+    texts = root.findAllByType('Text' as any).map((t) => t.props.children);
+    expect(texts).toContain('100% OFFLINE');
   });
 });
 
