@@ -17,13 +17,21 @@ export interface HalfScreenCameraProps {
   onMultiQrDetected?: (codes: string[]) => void;
   isPaused?: boolean;
   height?: number;
+  fullScreen?: boolean;
+  onExpandFullscreen?: () => void;
+  subtitle?: string;
+  renderBottomBar?: () => React.ReactNode;
 }
 
 export function HalfScreenCamera({
   onQrDetected,
   onMultiQrDetected,
   isPaused = false,
-  height = 320
+  height = 320,
+  fullScreen = false,
+  onExpandFullscreen,
+  subtitle,
+  renderBottomBar
 }: HalfScreenCameraProps) {
   const [permission, requestPermission] = useCameraPermissions();
   const [torchEnabled, setTorchEnabled] = useState(false);
@@ -69,7 +77,13 @@ export function HalfScreenCamera({
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
           videoRef.current.setAttribute('playsinline', 'true');
-          await videoRef.current.play();
+          videoRef.current.setAttribute('autoplay', 'true');
+          videoRef.current.muted = true;
+          try {
+            await videoRef.current.play();
+          } catch (playErr) {
+            console.warn('Web video play error:', playErr);
+          }
           if (isActive) setWebReady(true);
         }
 
@@ -147,7 +161,7 @@ export function HalfScreenCamera({
   // Handle permission requesting view
   if (Platform.OS !== 'web' && !permission?.granted) {
     return (
-      <View style={[styles.container, { height }]}>
+      <View style={fullScreen ? styles.fullScreenContainer : [styles.container, { height }]}>
         <View style={styles.permissionBox}>
           <Text style={styles.permissionIcon}>📷</Text>
           <Text style={styles.permissionTitle}>Live Camera Scanner</Text>
@@ -162,8 +176,14 @@ export function HalfScreenCamera({
     );
   }
 
+  const helperText =
+    subtitle ??
+    (fullScreen
+      ? 'Auto-analyzing offline · Multi-standee aware'
+      : 'Align payment QR inside frame · Instant prompt');
+
   return (
-    <View style={[styles.container, { height }]}>
+    <View style={fullScreen ? styles.fullScreenContainer : [styles.container, { height }]}>
       {/* Live Video / Camera Feed */}
       {Platform.OS !== 'web' ? (
         <CameraView
@@ -214,7 +234,15 @@ export function HalfScreenCamera({
         <View style={StyleSheet.absoluteFillObject}>
           <video
             ref={videoRef as unknown as React.LegacyRef<HTMLVideoElement>}
+            autoPlay
+            playsInline
+            muted
             style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
               width: '100%',
               height: '100%',
               objectFit: 'cover'
@@ -234,42 +262,66 @@ export function HalfScreenCamera({
       )}
 
       {/* Cyber Reticle Viewfinder HUD Overlay */}
-      <View style={styles.overlay}>
+      <View style={[styles.overlay, fullScreen && styles.overlayFullScreen]}>
         {/* Top Control Bar */}
         <View style={styles.topHudBar}>
           <View style={styles.statusPill}>
             <View style={styles.pulseDot} />
-            <Text style={styles.statusPillText}>LIVE SCANNER</Text>
+            <Text style={styles.statusPillText}>
+              {fullScreen ? 'ALIGN PAYMENT QR INSIDE RETICLE' : 'LIVE SCANNER'}
+            </Text>
           </View>
 
-          {Platform.OS !== 'web' ? (
+          <View style={styles.topRightActions}>
+            {!fullScreen && onExpandFullscreen ? (
+              <TouchableOpacity
+                style={styles.expandBtn}
+                activeOpacity={0.8}
+                onPress={onExpandFullscreen}
+                accessibilityLabel="Expand to full screen camera"
+              >
+                <Text style={styles.expandBtnText}>⛶ FULL</Text>
+              </TouchableOpacity>
+            ) : null}
+
             <TouchableOpacity
               style={[styles.torchBtn, torchEnabled && styles.torchBtnActive]}
               activeOpacity={0.8}
               onPress={() => setTorchEnabled(!torchEnabled)}
+              accessibilityLabel="Toggle Camera Flash"
             >
               <Text style={styles.torchBtnText}>{torchEnabled ? '🔦 ON' : '🔦 FLASH'}</Text>
             </TouchableOpacity>
-          ) : null}
-        </View>
-
-        {/* Center Scanner Reticle Frame */}
-        <View style={styles.reticleCenterWrapper}>
-          <View style={styles.reticleFrame}>
-            <View style={[styles.reticleCorner, styles.cornerTL]} />
-            <View style={[styles.reticleCorner, styles.cornerTR]} />
-            <View style={[styles.reticleCorner, styles.cornerBL]} />
-            <View style={[styles.reticleCorner, styles.cornerBR]} />
-            <View style={styles.centerAimDot} />
           </View>
         </View>
 
-        {/* Bottom Helper Caption */}
-        <View style={styles.bottomHudBar}>
-          <Text style={styles.reticleHelperText}>
-            Align payment QR inside frame · Instant prompt
-          </Text>
+        {/* Center Scanner Reticle Frame */}
+        <View style={fullScreen ? styles.reticleCenterWrapperFullScreen : styles.reticleCenterWrapper}>
+          <View style={fullScreen ? styles.reticleFrameFullScreen : styles.reticleFrame}>
+            <View style={[styles.reticleCorner, styles.cornerTL, fullScreen && styles.cornerFullScreen]} />
+            <View style={[styles.reticleCorner, styles.cornerTR, fullScreen && styles.cornerFullScreen]} />
+            <View style={[styles.reticleCorner, styles.cornerBL, fullScreen && styles.cornerFullScreen]} />
+            <View style={[styles.reticleCorner, styles.cornerBR, fullScreen && styles.cornerFullScreen]} />
+            <View style={[styles.centerAimDot, fullScreen && styles.centerAimDotFullScreen]} />
+          </View>
+
+          {fullScreen ? (
+            <Text style={styles.reticleHelperTextFullScreen}>
+              {helperText}
+            </Text>
+          ) : null}
         </View>
+
+        {/* Bottom Bar or Custom Content */}
+        {renderBottomBar ? (
+          renderBottomBar()
+        ) : !fullScreen ? (
+          <View style={styles.bottomHudBar}>
+            <Text style={styles.reticleHelperText}>
+              {helperText}
+            </Text>
+          </View>
+        ) : null}
       </View>
     </View>
   );
@@ -289,6 +341,75 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 10,
     elevation: 6
+  },
+  fullScreenContainer: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    borderRadius: 0,
+    borderWidth: 0,
+    backgroundColor: '#000000',
+    position: 'relative',
+    overflow: 'hidden'
+  },
+  overlayFullScreen: {
+    padding: 16,
+    paddingTop: 16,
+    backgroundColor: 'rgba(0, 0, 0, 0.25)'
+  },
+  topRightActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8
+  },
+  expandBtn: {
+    backgroundColor: 'rgba(2, 6, 23, 0.75)',
+    borderWidth: 1,
+    borderColor: '#38BDF8',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4
+  },
+  expandBtnText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#38BDF8',
+    letterSpacing: 0.5
+  },
+  reticleCenterWrapperFullScreen: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  reticleFrameFullScreen: {
+    width: 260,
+    height: 260,
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  cornerFullScreen: {
+    width: 34,
+    height: 34
+  },
+  centerAimDotFullScreen: {
+    width: 8,
+    height: 8,
+    borderRadius: 4
+  },
+  reticleHelperTextFullScreen: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.85)',
+    marginTop: 20,
+    textAlign: 'center',
+    letterSpacing: 0.3,
+    backgroundColor: 'rgba(2, 6, 23, 0.65)',
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)'
   },
   permissionBox: {
     flex: 1,

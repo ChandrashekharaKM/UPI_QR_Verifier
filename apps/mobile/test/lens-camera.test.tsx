@@ -127,6 +127,39 @@ describe('HalfScreenCamera Viewfinder Component', () => {
     expect(mockOnDetect).toHaveBeenCalledWith('upi://pay?pa=store@upi');
     vi.useRealTimers();
   });
+
+  it('renders in fullScreen mode with ALIGN PAYMENT QR INSIDE RETICLE and full-screen reticle', () => {
+    let renderer: TestRenderer.ReactTestRenderer;
+    act(() => {
+      renderer = TestRenderer.create(
+        <HalfScreenCamera onQrDetected={vi.fn()} fullScreen={true} />
+      );
+    });
+
+    const root = renderer!.root;
+    const texts = root.findAllByType('Text' as any).map((t) => t.props.children);
+    expect(texts).toContain('ALIGN PAYMENT QR INSIDE RETICLE');
+    expect(texts).toContain('Auto-analyzing offline · Multi-standee aware');
+  });
+
+  it('renders expand button when onExpandFullscreen is provided in half-screen mode', () => {
+    const mockExpand = vi.fn();
+    let renderer: TestRenderer.ReactTestRenderer;
+    act(() => {
+      renderer = TestRenderer.create(
+        <HalfScreenCamera onQrDetected={vi.fn()} onExpandFullscreen={mockExpand} />
+      );
+    });
+
+    const root = renderer!.root;
+    const expandBtn = root.findByProps({ accessibilityLabel: 'Expand to full screen camera' });
+    expect(expandBtn).toBeDefined();
+
+    act(() => {
+      expandBtn.props.onPress();
+    });
+    expect(mockExpand).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe('LensScanPromptModal Component', () => {

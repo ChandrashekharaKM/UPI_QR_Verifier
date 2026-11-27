@@ -102,6 +102,7 @@ export default function HomeScreen() {
       <View style={styles.cameraSection}>
         <HalfScreenCamera
           onQrDetected={handleLiveQrDetected}
+          onExpandFullscreen={() => router.push('/scan')}
           isPaused={cameraPaused || Boolean(scannedResult)}
           height={320}
         />
